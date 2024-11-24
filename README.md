@@ -78,8 +78,10 @@ app/
 3. Commit changes
 4. Push to branch
 5. Create Pull Request
+6. 
+## Contributor
+
+Sai Oan Hseng Hurk
 
 ## Contact
-
-- Project Lead: [name@university.edu](mailto:name@university.edu)
-- Team: [team@university.edu](mailto:team@university.edu)
+- Team: [UniMend]
