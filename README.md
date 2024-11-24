@@ -5,10 +5,8 @@ Mobile application for reporting and managing maintenance issues across universi
 ## Features
 
 - Photo-based issue reporting
-- Real-time geolocation tagging
-- Offline support
+- Geolocation tagging
 - Push notifications
-- Dark/Light theme support
 
 ## Setup Requirements
 
@@ -36,7 +34,6 @@ BASE_API_URL=your_backend_api_url
 ## Tech Stack
 
 - UI: Jetpack Compose
-- DI: Hilt
 - Network: Retrofit
 - Storage: Room
 - Images: Coil
