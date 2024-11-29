@@ -23,13 +23,7 @@ Mobile application for reporting and managing maintenance issues across universi
 git clone https://github.com/your-organization/au-fondue-android.git
 ```
 
-2. Add local.properties in project root:
-```properties
-MAPS_API_KEY=your_google_maps_api_key
-BASE_API_URL=your_backend_api_url
-```
-
-3. Sync and build project in Android Studio
+2. Sync and build project in Android Studio
 
 ## Tech Stack
 
@@ -58,24 +52,6 @@ Release:
 ./gradlew connectedAndroidTest
 ```
 
-## Project Structure
-```
-app/
-├── data/         # Repositories, data sources
-├── domain/       # Business logic
-├── presentation/ # UI, ViewModels
-├── di/           # Dependency injection
-└── utils/        # Utilities
-```
-
-## Contributing
-
-1. Fork repository
-2. Create feature branch
-3. Commit changes
-4. Push to branch
-5. Create Pull Request
-6. 
 ## Contributor
 
 Sai Oan Hseng Hurk
