@@ -22,6 +22,7 @@ import com.example.aufondue.navigation.Screen
 import com.example.aufondue.navigation.bottomNavigationItems
 import com.example.aufondue.screens.home.HomeScreen
 import com.example.aufondue.screens.login.LoginScreen
+import com.example.aufondue.screens.map.MapScreen
 import com.example.aufondue.screens.profile.ProfileScreen
 import com.example.aufondue.screens.report.ReportScreen
 import com.example.aufondue.ui.theme.AUFondueTheme
@@ -121,7 +122,11 @@ class MainActivity : ComponentActivity() {
                             }
 
                             composable(Screen.Map.route) {
-                                // TODO: Implement MapScreen
+                                MapScreen(
+                                    onNavigateBack = {
+                                        navController.popBackStack()
+                                    }
+                                )
                             }
 
                             composable(Screen.Notification.route) {
