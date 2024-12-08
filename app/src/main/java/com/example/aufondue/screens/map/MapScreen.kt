@@ -1,13 +1,20 @@
 package com.example.aufondue.screens.map
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -19,16 +26,48 @@ fun MapScreen(
     onNavigateBack: () -> Unit,
     viewModel: MapViewModel = viewModel()
 ) {
+    val context = LocalContext.current
     val issues by viewModel.issues.collectAsState()
     val selectedIssue by viewModel.selectedIssue.collectAsState()
 
-    val defaultLocation = LatLng(-33.865143, 151.209900) // Default to Sydney
+    // Default to ABAC location
+    val defaultLocation = LatLng(13.8505, 100.5678)
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(defaultLocation, 15f)
+        position = CameraPosition.fromLatLngZoom(defaultLocation, 16f)
     }
 
+    // Handle location permission
+    var hasLocationPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        hasLocationPermission = isGranted
+    }
+
+    // Request permission and load issues when the screen is first displayed
     LaunchedEffect(Unit) {
+        launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         viewModel.loadIssues()
+    }
+
+    // Move camera to selected issue
+    LaunchedEffect(selectedIssue) {
+        selectedIssue?.let { issue ->
+            cameraPositionState.animate(
+                update = CameraUpdateFactory.newLatLngZoom(
+                    LatLng(issue.latitude, issue.longitude),
+                    18f
+                )
+            )
+        }
     }
 
     Scaffold(
@@ -54,7 +93,16 @@ fun MapScreen(
             GoogleMap(
                 modifier = Modifier.fillMaxSize(),
                 cameraPositionState = cameraPositionState,
-                properties = MapProperties(isMyLocationEnabled = false)
+                properties = MapProperties(
+                    isMyLocationEnabled = hasLocationPermission,
+                    mapType = MapType.NORMAL
+                ),
+                uiSettings = MapUiSettings(
+                    zoomControlsEnabled = true,
+                    myLocationButtonEnabled = hasLocationPermission,
+                    mapToolbarEnabled = true,
+                    compassEnabled = true
+                )
             ) {
                 issues.forEach { issue ->
                     Marker(
@@ -78,6 +126,7 @@ fun MapScreen(
                 }
             }
 
+            // Information card for selected issue
             selectedIssue?.let { issue ->
                 Card(
                     modifier = Modifier

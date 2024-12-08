@@ -1,3 +1,16 @@
+import org.gradle.api.Project
+import java.util.Properties
+import java.io.FileInputStream
+
+fun Project.getLocalProperty(key: String, defaultValue: String = ""): String {
+    val localProperties = Properties()
+    val localPropertiesFile = project.rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localProperties.load(FileInputStream(localPropertiesFile))
+    }
+    return localProperties.getProperty(key, defaultValue)
+}
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -14,6 +27,9 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders["MAPS_API_KEY"] = getLocalProperty("MAPS_API_KEY")
+
+
     }
 
     buildTypes {
