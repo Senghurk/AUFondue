@@ -1,37 +1,32 @@
 package com.example.aufondue.screens.profile
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import android.util.Log
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.annotation.ExperimentalCoilApi
+import coil3.compose.SubcomposeAsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.request.transformations
+import coil3.transform.CircleCropTransformation
 
+@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun ProfileScreen(
     onSignOut: () -> Unit,
-    viewModel: ProfileViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: ProfileViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -39,35 +34,47 @@ fun ProfileScreen(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Profile Image
         Box(
             modifier = Modifier
                 .size(120.dp)
                 .clip(CircleShape)
         ) {
-            // TODO: Implement actual image loading
-            Surface(
+            SubcomposeAsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(state.avatarUrl)
+                    .transformations(listOf(CircleCropTransformation()))
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Profile Avatar",
                 modifier = Modifier.fillMaxSize(),
-                color = MaterialTheme.colorScheme.surfaceVariant
-            ) {}
+                contentScale = ContentScale.Crop,
+                loading = {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                },
+                error = {
+                    Log.e("ProfileScreen", "Error loading image: ${it.result}")
+                }
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "User Name",
+            text = state.userName.ifEmpty { "User Name" },
             style = MaterialTheme.typography.headlineMedium
         )
 
         Text(
-            text = "u6511102@au.edu",
+            text = state.email.ifEmpty { "u6511102@au.edu" },
             style = MaterialTheme.typography.bodyMedium
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = { /* TODO: Implement profile update */ },
+            onClick = { viewModel.updateAvatar() },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Update Profile")
@@ -75,7 +82,6 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Settings Section
         Card(
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -99,21 +105,6 @@ fun ProfileScreen(
                         checked = state.notificationsEnabled,
                         onCheckedChange = { viewModel.toggleNotifications() }
                     )
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Share Report Link")
-                    Button(
-                        onClick = { viewModel.shareReportLink() }
-                    ) {
-                        Text("Share")
-                    }
                 }
             }
         }

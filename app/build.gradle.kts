@@ -23,13 +23,22 @@ android {
     defaultConfig {
         applicationId = "com.example.aufondue"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders["MAPS_API_KEY"] = getLocalProperty("MAPS_API_KEY")
 
 
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file("aufondue-release.keystore")  // Relative path
+            storePassword = getLocalProperty("KEYSTORE_PASSWORD")
+            keyAlias = getLocalProperty("KEY_ALIAS")
+            keyPassword = getLocalProperty("KEY_PASSWORD")
+        }
     }
 
     buildTypes {
@@ -39,6 +48,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
+            isDebuggable = false
         }
     }
     compileOptions {
@@ -74,14 +85,21 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
 
     // Core Android dependencies
-    implementation("androidx.core:core-ktx:1.15.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
-    implementation("androidx.activity:activity-compose:1.9.3")
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
+    implementation("androidx.activity:activity-compose:1.9.0")
 
     // Compose dependencies
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
+
+    // Coil compose
+    implementation("io.coil-kt.coil3:coil:3.0.4")
+    implementation("io.coil-kt.coil3:coil-compose:3.0.4")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.0.4")
+
+
 
     // Navigation for Compose
     implementation("androidx.navigation:navigation-compose:2.8.4")

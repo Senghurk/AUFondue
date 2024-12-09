@@ -10,6 +10,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -43,18 +44,24 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(48.dp))
 
         // Logo
-        Image(
+//        Image(
+//            painter = painterResource(id = R.drawable.app_logo),
+//            contentDescription = stringResource(R.drawable.app_logo),
+//            modifier = Modifier.size(120.dp)
+//        )
+        Icon(
             painter = painterResource(id = R.drawable.app_logo),
-            contentDescription = stringResource(R.drawable.app_logo),
-            modifier = Modifier.size(120.dp)
+            contentDescription = "App Logo",
+            modifier = Modifier.width(500.dp).height(200.dp),
+            tint = Color.Red
         )
 
         // App Name
-        Text(
-            text = stringResource(R.string.app_name),
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center
-        )
+//        Text(
+//            text = stringResource(R.string.app_name),
+//            style = MaterialTheme.typography.headlineMedium,
+//            textAlign = TextAlign.Center
+//        )
 
         // Tagline
         Text(
