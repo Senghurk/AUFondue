@@ -39,9 +39,9 @@ class MainActivity : ComponentActivity() {
 
                 val shouldShowBottomBar = currentRoute in setOf(
                     Screen.Home.route,
-                    Screen.Profile.route,
                     Screen.Map.route,
-                    Screen.Notification.route
+                    Screen.Notification.route,
+                    Screen.Profile.route
                 )
 
                 Scaffold(

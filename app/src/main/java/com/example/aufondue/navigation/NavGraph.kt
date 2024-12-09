@@ -24,7 +24,7 @@ data class NavigationItem(
 
 val bottomNavigationItems = listOf(
     NavigationItem("Home", Icons.Default.Home, Screen.Home.route),
-    NavigationItem("Profile", Icons.Default.Person, Screen.Profile.route),
     NavigationItem("Map", Icons.Default.Map, Screen.Map.route),
-    NavigationItem("Notifications", Icons.Default.Notifications, Screen.Notification.route)
-)
+    NavigationItem("Notifications", Icons.Default.Notifications, Screen.Notification.route),
+    NavigationItem("Profile", Icons.Default.Person, Screen.Profile.route)
+    )
