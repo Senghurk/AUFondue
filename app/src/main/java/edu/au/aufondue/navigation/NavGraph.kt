@@ -14,7 +14,7 @@ sealed class Screen(val route: String) {
     object Report : Screen("report")
     object Map : Screen("map")
     object Notification : Screen("notification")
-    object NotificationDetails : Screen("notification_details")  // Add this new route
+    object NotificationDetails : Screen("notification_details")
 }
 
 data class NavigationItem(
@@ -24,8 +24,24 @@ data class NavigationItem(
 )
 
 val bottomNavigationItems = listOf(
-    NavigationItem("Home", Icons.Default.Home, Screen.Home.route),
-    NavigationItem("Map", Icons.Default.Map, Screen.Map.route),
-    NavigationItem("Notifications", Icons.Default.Notifications, Screen.Notification.route),
-    NavigationItem("Profile", Icons.Default.Person, Screen.Profile.route)
+    NavigationItem(
+        title = "Home",
+        icon = Icons.Default.Home,
+        route = Screen.Home.route
+    ),
+    NavigationItem(
+        title = "Map",
+        icon = Icons.Default.Map,
+        route = Screen.Map.route
+    ),
+    NavigationItem(
+        title = "Notifications",
+        icon = Icons.Default.Notifications,
+        route = Screen.Notification.route
+    ),
+    NavigationItem(
+        title = "Profile",
+        icon = Icons.Default.Person,
+        route = Screen.Profile.route
+    )
 )

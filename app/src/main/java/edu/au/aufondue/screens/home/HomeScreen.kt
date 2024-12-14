@@ -19,12 +19,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import edu.au.aufondue.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onNavigateToReport: () -> Unit,
+    navController: NavController,  // Add this parameter
     viewModel: HomeViewModel = viewModel()
 ) {
     var selectedTab by remember { mutableStateOf(0) }

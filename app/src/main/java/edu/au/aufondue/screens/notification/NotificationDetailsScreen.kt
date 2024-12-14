@@ -1,3 +1,5 @@
+package edu.au.aufondue.screens.notification
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
