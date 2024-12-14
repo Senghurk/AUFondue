@@ -1,5 +1,6 @@
 package edu.au.aufondue
 
+import NotificationDetailsScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -24,7 +25,6 @@ import edu.au.aufondue.navigation.bottomNavigationItems
 import edu.au.aufondue.screens.home.HomeScreen
 import edu.au.aufondue.screens.login.LoginScreen
 import edu.au.aufondue.screens.map.MapScreen
-import edu.au.aufondue.screens.notification.NotificationDetailsScreen
 import edu.au.aufondue.screens.notification.NotificationScreen
 import edu.au.aufondue.screens.profile.ProfileScreen
 import edu.au.aufondue.screens.report.ReportScreen

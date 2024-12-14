@@ -1,5 +1,3 @@
-package edu.au.aufondue.screens.notification
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -21,13 +19,12 @@ import edu.au.aufondue.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationDetailsScreen(
-    onNavigateBack: () -> Unit,
-    notification: Notification? = null
+    onNavigateBack: () -> Unit
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Report Details") },
+                title = { Text("Notification Details") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -42,147 +39,143 @@ fun NotificationDetailsScreen(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Description Section
-            Text(
-                text = "Description",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "Several lights are not functioning near the entrance",
-                style = MaterialTheme.typography.bodyLarge
-            )
-
-            // Priority and Category Section
-            Row(
+            // Status Card
+            Card(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(24.dp)
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
             ) {
-                Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        text = "Priority:",
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                    Text(
-                        text = "Low",
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                Column {
-                    Text(
-                        text = "Category:",
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                    Text(
-                        text = "Electrical",
-                        color = MaterialTheme.colorScheme.primary
+                        text = "Status: In Progress",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
 
-            // Location Section
-            Column {
-                Text(
-                    text = "Location:",
-                    style = MaterialTheme.typography.labelMedium
+            // Description Section with Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
-                Text(
-                    text = "Swimming Pool",
-                    color = MaterialTheme.colorScheme.primary
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Description",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Several lights are not functioning near the entrance",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+
+            // Info Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
                 )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Priority and Category Row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        InfoItem(
+                            title = "Priority",
+                            value = "Low",
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        InfoItem(
+                            title = "Category",
+                            value = "Electrical",
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    // Location
+                    InfoItem(
+                        title = "Location",
+                        value = "Swimming Pool",
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
 
             // Report Photo Section
-            Text(
-                text = "Report Photo",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .clip(RoundedCornerShape(12.dp))
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_category), // Replace with actual image
-                    contentDescription = "Report Photo",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "Report Photo",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_category),
+                            contentDescription = "Report Photo",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
             }
-
-            // Status Section
-            Text(
-                text = "Report Status : In Progress",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-
-            // Timeline Section
-            TimelineItem(
-                type = "User",
-                action = "Reported 12:45pm",
-                modifier = Modifier.padding(vertical = 4.dp)
-            )
-            TimelineItem(
-                type = "Admin",
-                action = "task assigned 12:45pm",
-                modifier = Modifier.padding(vertical = 4.dp)
-            )
         }
     }
 }
 
 @Composable
-private fun TimelineItem(
-    type: String,
-    action: String,
-    modifier: Modifier = Modifier
+private fun InfoItem(
+    title: String,
+    value: String,
+    color: androidx.compose.ui.graphics.Color
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_category),
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp)
-                )
-                Column {
-                    Text(
-                        text = type,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = action,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            }
-            Icon(
-                painter = painterResource(id = R.drawable.ic_category),
-                contentDescription = null,
-                modifier = Modifier.size(32.dp)
-            )
-        }
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleSmall,
+            color = color,
+            fontWeight = FontWeight.Medium
+        )
     }
 }
