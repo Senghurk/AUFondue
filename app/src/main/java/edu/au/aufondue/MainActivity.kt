@@ -24,6 +24,7 @@ import edu.au.aufondue.navigation.bottomNavigationItems
 import edu.au.aufondue.screens.home.HomeScreen
 import edu.au.aufondue.screens.login.LoginScreen
 import edu.au.aufondue.screens.map.MapScreen
+import edu.au.aufondue.screens.notification.NotificationDetailsScreen
 import edu.au.aufondue.screens.notification.NotificationScreen
 import edu.au.aufondue.screens.profile.ProfileScreen
 import edu.au.aufondue.screens.report.ReportScreen
@@ -137,9 +138,14 @@ class MainActivity : ComponentActivity() {
 
                             composable(Screen.Notification.route) {
                                 NotificationScreen(
-                                    onNavigateBack = {
-                                        navController.popBackStack()
-                                    }
+                                    onNavigateBack = { navController.popBackStack() },
+                                    navController = navController  // Pass navController here
+                                )
+                            }
+
+                            composable(Screen.NotificationDetails.route) {
+                                NotificationDetailsScreen(
+                                    onNavigateBack = { navController.popBackStack() }
                                 )
                             }
                         }
