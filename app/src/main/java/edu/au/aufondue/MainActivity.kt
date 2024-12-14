@@ -105,8 +105,7 @@ class MainActivity : ComponentActivity() {
                                 HomeScreen(
                                     onNavigateToReport = {
                                         navController.navigate(Screen.Report.route)
-                                    },
-                                    navController = navController
+                                    }
                                 )
                             }
 
