@@ -1,10 +1,11 @@
 package edu.au.aufondue
 
-import NotificationDetailsScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -14,6 +15,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -25,6 +28,7 @@ import edu.au.aufondue.navigation.bottomNavigationItems
 import edu.au.aufondue.screens.home.HomeScreen
 import edu.au.aufondue.screens.login.LoginScreen
 import edu.au.aufondue.screens.map.MapScreen
+import edu.au.aufondue.screens.notification.NotificationDetailsScreen
 import edu.au.aufondue.screens.notification.NotificationScreen
 import edu.au.aufondue.screens.profile.ProfileScreen
 import edu.au.aufondue.screens.report.ReportScreen
@@ -34,7 +38,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Initialize Coil with basic configuration
         ImageLoader.Builder(this).build()
 
         setContent {
@@ -53,21 +56,27 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     bottomBar = {
                         if (shouldShowBottomBar) {
-                            NavigationBar {
+                            NavigationBar(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(80.dp) // Increased height for better text display
+                            ) {
                                 bottomNavigationItems.forEach { item ->
                                     NavigationBarItem(
                                         icon = {
                                             Icon(
                                                 imageVector = item.icon,
-                                                contentDescription = item.title,
-                                                tint = if (currentRoute == item.route) {
-                                                    MaterialTheme.colorScheme.primary
-                                                } else {
-                                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                                }
+                                                contentDescription = null
                                             )
                                         },
-                                        label = { Text(item.title) },
+                                        label = {
+                                            Text(
+                                                text = item.title,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                style = MaterialTheme.typography.labelSmall
+                                            )
+                                        },
                                         selected = currentRoute == item.route,
                                         onClick = {
                                             if (currentRoute != item.route) {
@@ -105,7 +114,8 @@ class MainActivity : ComponentActivity() {
                                 HomeScreen(
                                     onNavigateToReport = {
                                         navController.navigate(Screen.Report.route)
-                                    }
+                                    },
+                                    navController = navController
                                 )
                             }
 
@@ -138,7 +148,7 @@ class MainActivity : ComponentActivity() {
                             composable(Screen.Notification.route) {
                                 NotificationScreen(
                                     onNavigateBack = { navController.popBackStack() },
-                                    navController = navController  // Pass navController here
+                                    navController = navController
                                 )
                             }
 
