@@ -38,7 +38,7 @@ class NotificationViewModel : ViewModel() {
         _notifications.value = listOf(
             Notification(
                 id = "1",
-                sender = "Campu",
+                sender = "Admin",
                 message = "Issue resolved, check now",
                 timestamp = System.currentTimeMillis(),
                 imageUrl = "map_image_url",
