@@ -1,4 +1,4 @@
-# AU Fondue Android App
+# AU Fondue Android Application
 
 This Mobile application is for reporting broken facilities and maintenance issues across university campuses and part of Senior Project I.
 
