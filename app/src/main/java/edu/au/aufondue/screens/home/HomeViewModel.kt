@@ -5,28 +5,47 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-data class NotificationItem(
-    val message: String,
-    val time: String
+data class ReportItem(
+    val id: String,
+    val title: String,
+    val description: String,
+    val status: String,
+    val timeAgo: String
 )
 
 class HomeViewModel : ViewModel() {
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+    private val _submittedReports = MutableStateFlow<List<ReportItem>>(generateSubmittedReports())
+    val submittedReports: StateFlow<List<ReportItem>> = _submittedReports.asStateFlow()
 
-    private val _notifications = MutableStateFlow<List<NotificationItem>>(
-        listOf(
-            NotificationItem("New report submitted", "2 mins ago"),
-            NotificationItem("Issue resolved", "1 hour ago")
+    private val _allReports = MutableStateFlow<List<ReportItem>>(generateAllReports())
+    val allReports: StateFlow<List<ReportItem>> = _allReports.asStateFlow()
+
+    private fun generateSubmittedReports(): List<ReportItem> {
+        return listOf(
+            ReportItem("1", "Leak Leak Leak", "Water leaking in building A", "PENDING", "Just updated"),
+            ReportItem("2", "Boreke broke Brok", "Broken chair in room 301", "IN_PROGRESS", "12 min ago"),
+            ReportItem("3", "Flood flood ohhh", "Flooding in basement", "RESOLVED", "1 day ago")
         )
-    )
-    val notifications: StateFlow<List<NotificationItem>> = _notifications.asStateFlow()
-
-    fun onSearchQueryChange(query: String) {
-        _searchQuery.value = query
     }
 
-    fun onSearch(query: String) {
-        // TODO: Implement search functionality
+    private fun generateAllReports(): List<ReportItem> {
+        return List(10) { index ->
+            ReportItem(
+                id = (index + 1).toString(),
+                title = "Campus Issue #${index + 1}",
+                description = "Issue reported in Building ${('A'.code + index).toChar()}",
+                status = when (index % 3) {
+                    0 -> "PENDING"
+                    1 -> "IN_PROGRESS"
+                    else -> "RESOLVED"
+                },
+                timeAgo = when (index % 4) {
+                    0 -> "Just updated"
+                    1 -> "12 min ago"
+                    2 -> "1 hour ago"
+                    else -> "1 day ago"
+                }
+            )
+        }
     }
 }

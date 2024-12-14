@@ -1,45 +1,24 @@
 package edu.au.aufondue.screens.home
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import edu.au.aufondue.navigation.Screen
 import edu.au.aufondue.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,7 +28,9 @@ fun HomeScreen(
     navController: NavController,
     viewModel: HomeViewModel = viewModel()
 ) {
-    val notifications by viewModel.notifications.collectAsState()
+    var selectedTab by remember { mutableStateOf(0) }
+    val submittedReports = viewModel.submittedReports.collectAsState()
+    val allReports = viewModel.allReports.collectAsState()
 
     Scaffold(
         topBar = {
@@ -78,123 +59,122 @@ fun HomeScreen(
             }
         }
     ) { padding ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            item {
-                CategoryRow()
-            }
+            // Categories Row
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                modifier = Modifier.padding(vertical = 8.dp)
+            ) {
+                val categories = listOf(
+                    "Cracked" to R.drawable.ic_category,
+                    "Leaking" to R.drawable.ic_category,
+                    "Flooded" to R.drawable.ic_category,
+                    "Broken" to R.drawable.ic_category
+                )
 
-            item {
-                ActionButtons(navController)
-            }
-
-            items(notifications) { notification ->
-                NotificationItem(notification = notification)
-            }
-        }
-    }
-}
-
-@Composable
-private fun CategoryRow() {
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp)
-    ) {
-        val categories = listOf(
-            "Cracked" to R.drawable.ic_category,
-            "Leaking" to R.drawable.ic_category,
-            "Flooded" to R.drawable.ic_category,
-            "Broken" to R.drawable.ic_category
-        )
-
-        items(categories) { (name, icon) ->
-            CategoryItem(
-                name = name,
-                iconRes = icon,
-                onClick = { /* TODO: Implement category filtering */ }
-            )
-        }
-    }
-}
-
-@Composable
-private fun CategoryItem(
-    name: String,
-    iconRes: Int,
-    onClick: () -> Unit
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(72.dp)
-    ) {
-        FilledTonalIconButton(
-            onClick = onClick,
-            modifier = Modifier.size(48.dp)
-        ) {
-            Icon(
-                painter = painterResource(id = iconRes),
-                contentDescription = name
-            )
-        }
-        Text(
-            text = name,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(top = 4.dp)
-        )
-    }
-}
-
-@Composable
-private fun ActionButtons(navController: NavController) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        TextButton(
-            onClick = { /* TODO: Implement submit report action */ }
-        ) {
-            Text("Submitted report")
-        }
-        Button(
-            onClick = {
-                navController.navigate(Screen.Map.route) {
-                    launchSingleTop = true
+                items(categories) { (name, icon) ->
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.width(72.dp)
+                    ) {
+                        FilledTonalIconButton(
+                            onClick = { },
+                            modifier = Modifier.size(48.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = icon),
+                                contentDescription = name
+                            )
+                        }
+                        Text(
+                            text = name,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
                 }
             }
-        ) {
-            Text("Track issues")
-        }
-    }
-}
 
-@Composable
-private fun NotificationItem(notification: NotificationItem) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = notification.message,
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = notification.time,
-                style = MaterialTheme.typography.bodySmall
-            )
+            // Tab Row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = { selectedTab = 0 },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (selectedTab == 0) MaterialTheme.colorScheme.primary else Color.LightGray
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Submitted report")
+                }
+                Button(
+                    onClick = { selectedTab = 1 },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (selectedTab == 1) MaterialTheme.colorScheme.primary else Color.LightGray
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Track issues")
+                }
+            }
+
+            // Content
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val reports = if (selectedTab == 0) submittedReports.value else allReports.value
+                items(reports) { report ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            Text(
+                                text = report.title,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = report.description,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = report.status,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                                Text(
+                                    text = report.timeAgo,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
