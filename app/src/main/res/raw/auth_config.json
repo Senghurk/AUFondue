@@ -1,0 +1,16 @@
+{
+  "client_id": "c6861f93-8bfd-44fe-8b34-a8e5b7d38b4a",
+  "authorization_user_agent": "DEFAULT",
+  "redirect_uri": "msauth://edu.au.aufondue/callback",
+  "broker_redirect_uri_registered": true,
+  "account_mode": "SINGLE",
+  "authorities": [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADMyOrg",
+        "tenant_id": "c1f3dc23-b7f8-48d3-9b5d-2b12f158f01f"
+      }
+    }
+  ]
+}
