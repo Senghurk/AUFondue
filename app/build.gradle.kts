@@ -112,6 +112,8 @@ dependencies {
     implementation("com.google.android.gms:play-services-maps:19.0.0")
     implementation("com.google.maps.android:maps-compose:6.2.1")
 
+    // https://mvnrepository.com/artifact/com.microsoft.identity.client/msal
+    implementation("com.microsoft.identity.client:msal:5.4.0")
 
 
     // ViewModel utilities for Compose
