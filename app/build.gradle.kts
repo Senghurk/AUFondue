@@ -113,7 +113,7 @@ dependencies {
     implementation("com.google.maps.android:maps-compose:6.2.1")
 
     // https://mvnrepository.com/artifact/com.microsoft.identity.client/msal
-    implementation("com.microsoft.identity.client:msal:5.4.0")
+//    implementation("com.microsoft.identity.client:msal:5.4.0")
 
 
     // ViewModel utilities for Compose
