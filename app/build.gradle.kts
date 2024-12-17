@@ -26,10 +26,12 @@ android {
         targetSdk = 35
 //        versionCode = 1
 //        versionName = "1.0"
-//        versionCode = 2        // Change from 1 to 2
-//        versionName = "1.0.1"  // Update to reflect new version
-        versionCode = 3
-        versionName = "1.0.2"
+//        versionCode = 2
+//        versionName = "1.0.1"
+//        versionCode = 3
+//        versionName = "1.0.2"
+        versionCode = 4
+        versionName = "1.0.3"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders["MAPS_API_KEY"] = getLocalProperty("MAPS_API_KEY")
 
