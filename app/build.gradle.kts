@@ -106,8 +106,6 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-compose:3.0.4")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.0.4")
 
-
-
     // Navigation for Compose
     implementation("androidx.navigation:navigation-compose:2.8.4")
 
@@ -116,9 +114,26 @@ dependencies {
     implementation("com.google.maps.android:maps-compose:6.2.1")
 
     // https://mvnrepository.com/artifact/com.microsoft.identity.client/msal
-//    implementation("com.microsoft.identity.client:msal:5.4.0")
+    //implementation("com.microsoft.identity.client:msal:5.4.0")
+
+    // Retrofit for API calls & okhttp
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-moshi:2.11.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    //Moshi
+    implementation("com.squareup.moshi:moshi:1.15.1")
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.1")
 
 
+    // Coroutines for async operations
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+
+    //ViewModel
+    implementation("androidx.lifecycle:lifecycle-runtime:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-viewmodel:2.8.7")
 
     // ViewModel utilities for Compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")

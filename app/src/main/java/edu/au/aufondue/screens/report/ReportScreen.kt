@@ -44,14 +44,18 @@ fun ReportScreen(
     onNavigateBack: () -> Unit,
     viewModel: ReportViewModel = viewModel()
 ) {
-    val state = viewModel.state.collectAsState().value
+    val state by viewModel.state.collectAsState()
     val scrollState = rememberScrollState()
     val context = LocalContext.current
     var photoUri by remember { mutableStateOf<Uri?>(null) }
     var showAttachmentDialog by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
 
-    // Permission states
+    // Set context for ViewModel
+    LaunchedEffect(Unit) {
+        viewModel.setContext(context)
+    }
+
     var hasLocationPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -70,7 +74,6 @@ fun ReportScreen(
         )
     }
 
-    // Map state
     val defaultLocation = LatLng(13.822136, 100.513971) // Default to AU
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(
@@ -79,7 +82,6 @@ fun ReportScreen(
         )
     }
 
-    // Camera launcher
     val cameraLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.TakePicture()
     ) { success ->
@@ -90,8 +92,7 @@ fun ReportScreen(
         }
     }
 
-    // Permission launchers
-    rememberLauncherForActivityResult(
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         hasLocationPermission = isGranted
@@ -102,25 +103,19 @@ fun ReportScreen(
     ) { isGranted ->
         hasCameraPermission = isGranted
         if (isGranted) {
-            try {
-                photoUri = createImageUri(context)
-                photoUri?.let { uri ->
-                    cameraLauncher.launch(uri)
-                }
-            } catch (e: Exception) {
-                // Handle error creating image URI
+            photoUri = createImageUri(context)
+            photoUri?.let { uri ->
+                cameraLauncher.launch(uri)
             }
         }
     }
 
-    // Gallery launcher
     val galleryLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let { viewModel.onPhotoSelected(it) }
     }
 
-    // Map location update effect
     LaunchedEffect(cameraPositionState.position) {
         val position = cameraPositionState.position
         viewModel.onLocationSelected(
@@ -129,7 +124,6 @@ fun ReportScreen(
         )
     }
 
-    // Photo attachment dialog
     if (showAttachmentDialog) {
         AlertDialog(
             onDismissRequest = { showAttachmentDialog = false },
@@ -141,13 +135,9 @@ fun ReportScreen(
                     TextButton(
                         onClick = {
                             if (hasCameraPermission) {
-                                try {
-                                    photoUri = createImageUri(context)
-                                    photoUri?.let { uri ->
-                                        cameraLauncher.launch(uri)
-                                    }
-                                } catch (e: Exception) {
-                                    // Handle error
+                                photoUri = createImageUri(context)
+                                photoUri?.let { uri ->
+                                    cameraLauncher.launch(uri)
                                 }
                             } else {
                                 cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
@@ -178,7 +168,6 @@ fun ReportScreen(
         )
     }
 
-    // Main UI
     Scaffold(
         topBar = {
             TopAppBar(
@@ -191,163 +180,158 @@ fun ReportScreen(
             )
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Description Section
-            OutlinedTextField(
-                value = state.description,
-                onValueChange = viewModel::onDescriptionChange,
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Enter Description") },
-                minLines = 3
-            )
-
-            // Attach Photo Button
-            Button(
-                onClick = { showAttachmentDialog = true },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            ) {
-                Text("Attach Photo")
-            }
-
-            if (state.selectedPhotos.isNotEmpty()) {
-                Text(
-                    "${state.selectedPhotos.size} photo(s) attached",
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            // Location Section
+        Box(modifier = Modifier.fillMaxSize()) {
             Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text(
-                    text = "Select location",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium
+                OutlinedTextField(
+                    value = state.description,
+                    onValueChange = viewModel::onDescriptionChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("Enter Description") },
+                    minLines = 3
                 )
 
-                // Location Input Method Switch
-                Row(
+                Button(
+                    onClick = { showAttachmentDialog = true },
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 ) {
-                    Text("Use custom location")
-                    Switch(
-                        checked = state.isUsingCustomLocation,
-                        onCheckedChange = { viewModel.toggleLocationInputMethod() }
+                    Text("Attach Photo")
+                }
+
+                if (state.selectedPhotos.isNotEmpty()) {
+                    Text(
+                        "${state.selectedPhotos.size} photo(s) attached",
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
 
-                if (state.isUsingCustomLocation) {
-                    // Custom Location Text Input
-                    OutlinedTextField(
-                        value = state.customLocation,
-                        onValueChange = viewModel::onCustomLocationChange,
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Enter location description") },
-                        minLines = 2
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Select location",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium
                     )
-                } else {
-                    // Map Selection
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .clip(RoundedCornerShape(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        GoogleMap(
-                            modifier = Modifier.fillMaxSize(),
-                            cameraPositionState = cameraPositionState,
-                            properties = MapProperties(isMyLocationEnabled = hasLocationPermission),
-                            uiSettings = MapUiSettings(
-                                myLocationButtonEnabled = hasLocationPermission,
-                                zoomControlsEnabled = true
-                            )
+                        Text("Use custom location")
+                        Switch(
+                            checked = state.isUsingCustomLocation,
+                            onCheckedChange = { viewModel.toggleLocationInputMethod() }
+                        )
+                    }
+
+                    if (state.isUsingCustomLocation) {
+                        OutlinedTextField(
+                            value = state.customLocation,
+                            onValueChange = viewModel::onCustomLocationChange,
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = { Text("Enter location description") },
+                            minLines = 2
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .clip(RoundedCornerShape(12.dp))
                         ) {
-                            state.location?.let { location ->
-                                Marker(
-                                    state = MarkerState(position = LatLng(location.latitude, location.longitude)),
-                                    title = "Selected Location"
+                            GoogleMap(
+                                modifier = Modifier.fillMaxSize(),
+                                cameraPositionState = cameraPositionState,
+                                properties = MapProperties(isMyLocationEnabled = hasLocationPermission),
+                                uiSettings = MapUiSettings(
+                                    myLocationButtonEnabled = hasLocationPermission,
+                                    zoomControlsEnabled = true
                                 )
+                            ) {
+                                state.location?.let { location ->
+                                    Marker(
+                                        state = MarkerState(position = LatLng(location.latitude, location.longitude)),
+                                        title = "Selected Location"
+                                    )
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            // Category Section
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded }
-            ) {
-                OutlinedTextField(
-                    value = state.category,
-                    onValueChange = {},
-                    readOnly = true,
-                    trailingIcon = { Icon(Icons.Default.KeyboardArrowDown, null) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(),
-                    placeholder = { Text("Select Category") }
-                )
-                ExposedDropdownMenu(
+                ExposedDropdownMenuBox(
                     expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                    onExpandedChange = { expanded = !expanded }
                 ) {
-                    listOf("Cracked", "Leaking", "Flooded", "Broken", "Custom").forEach { category ->
-                        DropdownMenuItem(
-                            text = { Text(category) },
-                            onClick = {
-                                viewModel.onCategoryChange(category)
-                                expanded = false
-                            }
-                        )
+                    OutlinedTextField(
+                        value = state.category,
+                        onValueChange = {},
+                        readOnly = true,
+                        trailingIcon = { Icon(Icons.Default.KeyboardArrowDown, null) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(),
+                        placeholder = { Text("Select Category") }
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        listOf("Cracked", "Leaking", "Flooded", "Broken", "Custom").forEach { category ->
+                            DropdownMenuItem(
+                                text = { Text(category) },
+                                onClick = {
+                                    viewModel.onCategoryChange(category)
+                                    expanded = false
+                                }
+                            )
+                        }
                     }
                 }
-            }
 
-            AnimatedVisibility(
-                visible = state.category == "Custom",
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
-            ) {
-                OutlinedTextField(
-                    value = state.customCategory,
-                    onValueChange = viewModel::onCustomCategoryChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Enter custom category") }
-                )
-            }
+                AnimatedVisibility(
+                    visible = state.category == "Custom",
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically()
+                ) {
+                    OutlinedTextField(
+                        value = state.customCategory,
+                        onValueChange = viewModel::onCustomCategoryChange,
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("Enter custom category") }
+                    )
+                }
 
-            // Submit Button
-            Button(
-                onClick = { viewModel.submitReport(onNavigateBack) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text("Submit")
-            }
-
-            // Loading Indicator
-            if (state.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
+                Button(
+                    onClick = { viewModel.submitReport(onSuccess = onNavigateBack) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    enabled = !state.isLoading
+                ) {
+                    if (state.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    } else {
+                        Text("Submit")
+                    }
+                }
             }
 
             // Error Dialog
@@ -363,8 +347,6 @@ fun ReportScreen(
                     }
                 )
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
