@@ -116,6 +116,7 @@ dependencies {
 //    implementation("com.microsoft.identity.client:msal:5.4.0")
 
 
+
     // ViewModel utilities for Compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
 
