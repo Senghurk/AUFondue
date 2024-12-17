@@ -26,10 +26,19 @@ class MapViewModel : ViewModel() {
     private val _selectedIssue = MutableStateFlow<MapIssue?>(null)
     val selectedIssue: StateFlow<MapIssue?> = _selectedIssue.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
     fun loadIssues() {
         viewModelScope.launch {
-            // TODO: Replace with actual API call
-            _issues.value = generateSampleIssues()
+            try {
+                _isLoading.value = true
+                // Simulate network delay
+                kotlinx.coroutines.delay(1000)
+                _issues.value = generateSampleIssues()
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 
@@ -49,8 +58,8 @@ class MapViewModel : ViewModel() {
                 description = "Water pipe leakage in building A",
                 category = "Broken",
                 priority = "High",
-                latitude = -33.865143,
-                longitude = 151.209900
+                latitude = 13.850943,
+                longitude = 100.567900
             ),
             MapIssue(
                 id = "2",
@@ -58,8 +67,8 @@ class MapViewModel : ViewModel() {
                 description = "Wall damage in corridor",
                 category = "Cracked",
                 priority = "Medium",
-                latitude = -33.866943,
-                longitude = 151.208900
+                latitude = 13.851943,
+                longitude = 100.568900
             ),
             MapIssue(
                 id = "3",
@@ -67,8 +76,8 @@ class MapViewModel : ViewModel() {
                 description = "Ceiling leak in room 101",
                 category = "Leaking",
                 priority = "High",
-                latitude = -33.864143,
-                longitude = 151.210900
+                latitude = 13.849143,
+                longitude = 100.566900
             )
         )
     }

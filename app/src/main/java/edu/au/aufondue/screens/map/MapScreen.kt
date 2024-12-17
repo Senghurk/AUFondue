@@ -2,7 +2,7 @@ package edu.au.aufondue.screens.map
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.util.Log
+import android.location.Location
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -10,17 +10,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,7 +35,12 @@ fun MapScreen(
     val issues by viewModel.issues.collectAsState()
     val selectedIssue by viewModel.selectedIssue.collectAsState()
 
-    // Default to ABAC location
+    // Initialize FusedLocationProviderClient
+    val fusedLocationClient = remember {
+        LocationServices.getFusedLocationProviderClient(context)
+    }
+
+    // Default to Kasetsart University location
     val defaultLocation = LatLng(13.8505, 100.5678)
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(defaultLocation, 16f)
@@ -50,13 +58,20 @@ fun MapScreen(
 
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
+    ) { isGranted ->
         hasLocationPermission = isGranted
+        if (isGranted) {
+            getCurrentLocation(fusedLocationClient, cameraPositionState)
+        }
     }
 
     // Request permission and load issues when the screen is first displayed
     LaunchedEffect(Unit) {
-        launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        if (!hasLocationPermission) {
+            launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        } else {
+            getCurrentLocation(fusedLocationClient, cameraPositionState)
+        }
         viewModel.loadIssues()
     }
 
@@ -67,7 +82,8 @@ fun MapScreen(
                 update = CameraUpdateFactory.newLatLngZoom(
                     LatLng(issue.latitude, issue.longitude),
                     18f
-                )
+                ),
+                durationMs = 1000
             )
         }
     }
@@ -104,7 +120,11 @@ fun MapScreen(
                     myLocationButtonEnabled = hasLocationPermission,
                     mapToolbarEnabled = true,
                     compassEnabled = true
-                )
+                ),
+                onMyLocationButtonClick = {
+                    getCurrentLocation(fusedLocationClient, cameraPositionState)
+                    true
+                }
             ) {
                 issues.forEach { issue ->
                     Marker(
@@ -133,7 +153,8 @@ fun MapScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(16.dp)
+                        .align(Alignment.BottomCenter),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)
                     )
@@ -143,12 +164,16 @@ fun MapScreen(
                     ) {
                         Text(
                             text = issue.title,
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = issue.description,
                             style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(top = 8.dp)
+                            modifier = Modifier.padding(top = 8.dp),
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Row(
                             modifier = Modifier
@@ -176,6 +201,34 @@ fun MapScreen(
                     }
                 }
             }
+
+            // Loading indicator
+            if (viewModel.isLoading.collectAsState().value) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(16.dp)
+                )
+            }
         }
+    }
+}
+
+private fun getCurrentLocation(
+    fusedLocationClient: FusedLocationProviderClient,
+    cameraPositionState: CameraPositionState
+) {
+    try {
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location: Location? ->
+                location?.let {
+                    val currentLatLng = LatLng(it.latitude, it.longitude)
+                    cameraPositionState.move(
+                        CameraUpdateFactory.newLatLngZoom(currentLatLng, 18f)
+                    )
+                }
+            }
+    } catch (e: SecurityException) {
+        // Handle permission denial
     }
 }
