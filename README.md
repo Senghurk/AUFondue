@@ -20,7 +20,7 @@ This Mobile application is for reporting broken facilities and maintenance issue
 
 1. Clone the repository
 ```bash
-git clone https://github.com/your-organization/au-fondue-android.git
+git clone https://github.com/Senghurk/AUFondue.git
 ```
 
 2. Sync and build project in Android Studio
