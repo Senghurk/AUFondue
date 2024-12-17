@@ -21,6 +21,8 @@ data class ReportState(
     val customCategory: String = "",
     val selectedPhotos: List<Uri> = emptyList(),
     val location: LocationData? = null,
+    val customLocation: String = "",
+    val isUsingCustomLocation: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null
 )
@@ -44,6 +46,22 @@ class ReportViewModel : ViewModel() {
         _state.update { it.copy(customCategory = customCategory) }
     }
 
+    fun onCustomLocationChange(location: String) {
+        _state.update { it.copy(
+            customLocation = location,
+            isUsingCustomLocation = true,
+            location = null // Clear map location when using custom location
+        ) }
+    }
+
+    fun toggleLocationInputMethod() {
+        _state.update { it.copy(
+            isUsingCustomLocation = !it.isUsingCustomLocation,
+            customLocation = "", // Clear custom location when switching to map
+            location = null // Clear map location when switching to custom
+        ) }
+    }
+
     fun onPhotoSelected(uri: Uri) {
         _state.update { currentState ->
             currentState.copy(
@@ -58,7 +76,9 @@ class ReportViewModel : ViewModel() {
                 location = LocationData(
                     latitude = latitude,
                     longitude = longitude
-                )
+                ),
+                isUsingCustomLocation = false,
+                customLocation = "" // Clear custom location when using map
             )
         }
     }
@@ -103,8 +123,10 @@ class ReportViewModel : ViewModel() {
                 throw IllegalStateException("Please enter a custom problem type")
             currentState.selectedPhotos.isEmpty() ->
                 throw IllegalStateException("Please attach at least one photo")
-            currentState.location == null ->
-                throw IllegalStateException("Please select a location")
+            !currentState.isUsingCustomLocation && currentState.location == null ->
+                throw IllegalStateException("Please select a location on the map")
+            currentState.isUsingCustomLocation && currentState.customLocation.isBlank() ->
+                throw IllegalStateException("Please enter a location description")
         }
     }
 }

@@ -228,32 +228,62 @@ fun ReportScreen(
             }
 
             // Location Section
-            Text(
-                text = "Select location",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium
-            )
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .clip(RoundedCornerShape(12.dp))
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                GoogleMap(
-                    modifier = Modifier.fillMaxSize(),
-                    cameraPositionState = cameraPositionState,
-                    properties = MapProperties(isMyLocationEnabled = hasLocationPermission),
-                    uiSettings = MapUiSettings(
-                        myLocationButtonEnabled = hasLocationPermission,
-                        zoomControlsEnabled = true
-                    )
+                Text(
+                    text = "Select location",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Medium
+                )
+
+                // Location Input Method Switch
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    state.location?.let { location ->
-                        Marker(
-                            state = MarkerState(position = LatLng(location.latitude, location.longitude)),
-                            title = "Selected Location"
-                        )
+                    Text("Use custom location")
+                    Switch(
+                        checked = state.isUsingCustomLocation,
+                        onCheckedChange = { viewModel.toggleLocationInputMethod() }
+                    )
+                }
+
+                if (state.isUsingCustomLocation) {
+                    // Custom Location Text Input
+                    OutlinedTextField(
+                        value = state.customLocation,
+                        onValueChange = viewModel::onCustomLocationChange,
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("Enter location description") },
+                        minLines = 2
+                    )
+                } else {
+                    // Map Selection
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                    ) {
+                        GoogleMap(
+                            modifier = Modifier.fillMaxSize(),
+                            cameraPositionState = cameraPositionState,
+                            properties = MapProperties(isMyLocationEnabled = hasLocationPermission),
+                            uiSettings = MapUiSettings(
+                                myLocationButtonEnabled = hasLocationPermission,
+                                zoomControlsEnabled = true
+                            )
+                        ) {
+                            state.location?.let { location ->
+                                Marker(
+                                    state = MarkerState(position = LatLng(location.latitude, location.longitude)),
+                                    title = "Selected Location"
+                                )
+                            }
+                        }
                     }
                 }
             }
