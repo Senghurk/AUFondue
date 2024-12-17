@@ -185,10 +185,6 @@ fun MapScreen(
                                 text = "Category: ${issue.category}",
                                 style = MaterialTheme.typography.bodySmall
                             )
-                            Text(
-                                text = "Priority: ${issue.priority}",
-                                style = MaterialTheme.typography.bodySmall
-                            )
                         }
                         Button(
                             onClick = { viewModel.clearSelectedIssue() },

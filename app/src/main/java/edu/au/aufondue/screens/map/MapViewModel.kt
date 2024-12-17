@@ -12,7 +12,6 @@ data class MapIssue(
     val title: String,
     val description: String,
     val category: String,
-    val priority: String,
     val latitude: Double,
     val longitude: Double,
     val status: String = "Open",
@@ -57,7 +56,6 @@ class MapViewModel : ViewModel() {
                 title = "Broken Pipe",
                 description = "Water pipe leakage in building A",
                 category = "Broken",
-                priority = "High",
                 latitude = 13.850943,
                 longitude = 100.567900
             ),
@@ -66,7 +64,6 @@ class MapViewModel : ViewModel() {
                 title = "Cracked Wall",
                 description = "Wall damage in corridor",
                 category = "Cracked",
-                priority = "Medium",
                 latitude = 13.851943,
                 longitude = 100.568900
             ),
@@ -75,7 +72,6 @@ class MapViewModel : ViewModel() {
                 title = "Water Leak",
                 description = "Ceiling leak in room 101",
                 category = "Leaking",
-                priority = "High",
                 latitude = 13.849143,
                 longitude = 100.566900
             )
