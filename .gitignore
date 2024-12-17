@@ -18,3 +18,4 @@ keystore-base64.txt
 *.txt
 *.config
 *.json
+app/src/main/res/raw/auth_config.json
