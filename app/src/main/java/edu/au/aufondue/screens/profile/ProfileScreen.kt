@@ -77,7 +77,7 @@ fun ProfileScreen(
             onClick = { viewModel.updateAvatar() },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Update Profile")
+            Text("Update Avatar")
         }
 
         Spacer(modifier = Modifier.height(24.dp))
