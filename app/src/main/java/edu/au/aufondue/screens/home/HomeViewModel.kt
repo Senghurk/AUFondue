@@ -22,7 +22,7 @@ class HomeViewModel : ViewModel() {
 
     private fun generateSubmittedReports(): List<ReportItem> {
         return listOf(
-            ReportItem("1", "Leak Leak Leak", "Water leaking in building A", "PENDING", "Just updated"),
+            ReportItem("1", "Leak Leak Leak", "Water leaking in building A", "PENDING", "1 min ago"),
             ReportItem("2", "Boreke broke Brok", "Broken chair in room 301", "IN_PROGRESS", "12 min ago"),
             ReportItem("3", "Flood flood ohhh", "Flooding in basement", "RESOLVED", "1 day ago")
         )
