@@ -10,9 +10,24 @@ interface ApiService {
     @Multipart
     @POST("api/issues")
     suspend fun createIssue(
-        @Part("issue") issue: RequestBody,  // Changed to RequestBody
+        @Part("issue") issue: RequestBody,
         @Part photos: List<MultipartBody.Part>
     ): Response<ApiResponse<IssueResponse>>
+
+    @GET("api/issues/user/{userId}/submitted")
+    suspend fun getUserSubmittedIssues(
+        @Path("userId") userId: Long,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 10,
+        @Query("status") status: String? = null
+    ): Response<ApiResponse<List<IssueResponse>>>
+
+    @GET("api/issues/tracking")
+    suspend fun getAllIssuesTracking(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 10,
+        @Query("status") status: String? = null
+    ): Response<ApiResponse<List<IssueResponse>>>
 
     @GET("api/issues")
     suspend fun getAllIssues(
