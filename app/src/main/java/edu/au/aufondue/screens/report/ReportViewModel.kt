@@ -175,9 +175,13 @@ class ReportViewModel : ViewModel() {
                 val currentState = state.value
                 val ctx = context ?: throw IllegalStateException("Context not set")
 
+                // Add this just before making the API call in submitReport
+                Log.d("ReportViewModel", "Location data - isUsingCustomLocation: ${currentState.isUsingCustomLocation}")
+                Log.d("ReportViewModel", "Location data - latitude: ${currentState.location?.latitude}")
+                Log.d("ReportViewModel", "Location data - longitude: ${currentState.location?.longitude}")
+
                 // Create the request object
                 val issueRequest = IssueRequest(
-                    title = generateTitle(currentState),    // Added title generation
                     description = currentState.description,
                     category = if (currentState.category == "Custom")
                         currentState.customCategory
@@ -203,6 +207,9 @@ class ReportViewModel : ViewModel() {
                 )
 
                 val issueJson = moshi.adapter(IssueRequest::class.java).toJson(issueRequest)
+
+                Log.d("ReportViewModel", "Request JSON: $issueJson")
+
                 val issueRequestBody = issueJson.toRequestBody("application/json".toMediaTypeOrNull())
 
                 val photoParts = mutableListOf<MultipartBody.Part>()

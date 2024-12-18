@@ -10,7 +10,7 @@ interface ApiService {
     @Multipart
     @POST("api/issues")
     suspend fun createIssue(
-        @Part("issue") issueRequest: RequestBody,  // Changed to RequestBody
+        @Part("issue") issue: RequestBody,  // Changed to RequestBody
         @Part photos: List<MultipartBody.Part>
     ): Response<ApiResponse<IssueResponse>>
 
