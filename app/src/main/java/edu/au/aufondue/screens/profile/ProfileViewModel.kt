@@ -41,7 +41,7 @@ class ProfileViewModel : ViewModel() {
         fun generateRobotAvatarUrl(): String {
             val randomSeed = Random.nextInt(1000)
             val timestamp = System.currentTimeMillis()
-            return "https://robohash.org/$randomSeed?set=set3&size=200x200&ts=$timestamp"
+            return "https://robohash.org/$randomSeed?set=set4&size=200x200&ts=$timestamp"
         }
     }
 }
