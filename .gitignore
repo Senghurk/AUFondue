@@ -19,3 +19,4 @@ keystore-base64.txt
 *.config
 *.json
 app/src/main/res/raw/auth_config.json
+app/src/main/res/raw/auth_config_template.json

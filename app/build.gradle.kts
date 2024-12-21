@@ -20,6 +20,27 @@ android {
     namespace = "edu.au.aufondue"
     compileSdk = 35
 
+    tasks.register("generateAuthConfig") {
+        doLast {
+            val templateFile = file("src/main/res/raw/auth_config_template.json")
+            val outputFile = file("src/main/res/raw/auth_config.json")
+
+            var templateContent = templateFile.readText()
+            templateContent = templateContent.replace("@microsoft_client_id@", getLocalProperty("MICROSOFT_CLIENT_ID"))
+            templateContent = templateContent.replace("@microsoft_tenant_id@", getLocalProperty("MICROSOFT_TENANT_ID"))
+            templateContent = templateContent.replace("@microsoft_redirect_uri@", getLocalProperty("MICROSOFT_REDIRECT_URI"))
+
+            outputFile.writeText(templateContent)
+        }
+    }
+
+    tasks.named("preBuild") {
+        dependsOn("generateAuthConfig")
+    }
+
+
+
+
     defaultConfig {
         applicationId = "edu.au.aufondue"
         minSdk = 24
@@ -114,7 +135,10 @@ dependencies {
     implementation("com.google.maps.android:maps-compose:6.2.1")
 
     // https://mvnrepository.com/artifact/com.microsoft.identity.client/msal
-    //implementation("com.microsoft.identity.client:msal:5.4.0")
+    implementation("com.microsoft.identity.client:msal:5.8.2"){
+        exclude(group = "com.microsoft.device.display", module = "display-mask")
+    }
+
 
     // Retrofit for API calls & okhttp
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
