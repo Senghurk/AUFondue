@@ -1,3 +1,4 @@
+// ProfileScreen.kt
 package edu.au.aufondue.screens.profile
 
 import android.util.Log
@@ -10,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.annotation.ExperimentalCoilApi
@@ -34,6 +36,7 @@ fun ProfileScreen(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Profile Avatar
         Box(
             modifier = Modifier
                 .size(120.dp)
@@ -61,18 +64,23 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Display Name
         Text(
-            text = state.userName.ifEmpty { "User Name" },
-            style = MaterialTheme.typography.headlineMedium
+            text = state.displayName,
+            style = MaterialTheme.typography.headlineMedium,
+            textAlign = TextAlign.Center
         )
 
+        // Email
         Text(
-            text = state.email.ifEmpty { "u6511102@au.edu" },
-            style = MaterialTheme.typography.bodyMedium
+            text = state.email,
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Update Avatar Button
         Button(
             onClick = { viewModel.updateAvatar() },
             modifier = Modifier.fillMaxWidth()
@@ -82,6 +90,7 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Settings Card
         Card(
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -111,6 +120,7 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
+        // Sign Out Button
         Button(
             onClick = { viewModel.signOut(onSignOut) },
             modifier = Modifier.fillMaxWidth(),

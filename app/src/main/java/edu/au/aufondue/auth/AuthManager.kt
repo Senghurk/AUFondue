@@ -3,7 +3,13 @@ package edu.au.aufondue.auth
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.util.Log
-import com.microsoft.identity.client.*
+import com.microsoft.identity.client.AcquireTokenParameters
+import com.microsoft.identity.client.AuthenticationCallback
+import com.microsoft.identity.client.IAuthenticationResult
+import com.microsoft.identity.client.IPublicClientApplication
+import com.microsoft.identity.client.ISingleAccountPublicClientApplication
+import com.microsoft.identity.client.Prompt
+import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.exception.MsalException
 import edu.au.aufondue.R
 
@@ -19,25 +25,8 @@ class AuthManager private constructor(private val activity: Activity) {
                     mSingleAccountApp = application
                     Log.d(TAG, "MSAL application created successfully")
 
-                    // Clear any existing accounts
-                    application.getCurrentAccountAsync(object : ISingleAccountPublicClientApplication.CurrentAccountCallback {
-                        override fun onAccountLoaded(activeAccount: IAccount?) {
-                            activeAccount?.let {
-                                application.signOut(object : ISingleAccountPublicClientApplication.SignOutCallback {
-                                    override fun onSignOut() {
-                                        Log.d(TAG, "Previous account signed out")
-                                    }
-                                    override fun onError(exception: MsalException) {
-                                        Log.e(TAG, "Error signing out previous account", exception)
-                                    }
-                                })
-                            }
-                        }
-                        override fun onAccountChanged(priorAccount: IAccount?, currentAccount: IAccount?) {}
-                        override fun onError(exception: MsalException) {
-                            Log.e(TAG, "Error loading current account", exception)
-                        }
-                    })
+                    // Clear any existing account on initialization
+                    clearCurrentAccount()
                 }
 
                 override fun onError(exception: MsalException) {
@@ -47,67 +36,66 @@ class AuthManager private constructor(private val activity: Activity) {
         )
     }
 
+    private fun clearCurrentAccount() {
+        mSingleAccountApp?.let { app ->
+            try {
+                app.signOut(object : ISingleAccountPublicClientApplication.SignOutCallback {
+                    override fun onSignOut() {
+                        Log.d(TAG, "Signed out successfully")
+                    }
+                    override fun onError(exception: MsalException) {
+                        Log.e(TAG, "Error signing out", exception)
+                    }
+                })
+            } catch (e: Exception) {
+                Log.e(TAG, "Error during sign out", e)
+            }
+        }
+    }
+
     fun signIn(onSuccess: (String) -> Unit, onError: (Exception) -> Unit) {
         mSingleAccountApp?.let { app ->
-            // First ensure we're signed out
-            app.signOut(object : ISingleAccountPublicClientApplication.SignOutCallback {
-                override fun onSignOut() {
-                    // Now proceed with sign in
-                    performSignIn(app, onSuccess, onError)
-                }
-                override fun onError(exception: MsalException) {
-                    // Still try to sign in even if sign out fails
-                    performSignIn(app, onSuccess, onError)
-                }
-            })
+            try {
+                // Build parameters with minimal required scopes
+                val parameters = AcquireTokenParameters.Builder()
+                    .startAuthorizationFromActivity(activity)
+                    .withScopes(SCOPES.toList())
+                    .withPrompt(Prompt.SELECT_ACCOUNT)
+                    .withCallback(object : AuthenticationCallback {
+                        override fun onSuccess(authenticationResult: IAuthenticationResult) {
+                            Log.d(TAG, "Sign in success")
+                            onSuccess(authenticationResult.accessToken)
+                        }
+
+                        override fun onError(exception: MsalException) {
+                            Log.e(TAG, "Sign in error", exception)
+                            onError(exception)
+                        }
+
+                        override fun onCancel() {
+                            Log.d(TAG, "Sign in canceled")
+                            onError(Exception("Sign in canceled"))
+                        }
+                    })
+                    .build()
+
+                app.acquireToken(parameters)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error during sign in", e)
+                onError(e)
+            }
         } ?: run {
             onError(Exception("MSAL client not initialized"))
         }
     }
 
-    private fun performSignIn(
-        app: ISingleAccountPublicClientApplication,
-        onSuccess: (String) -> Unit,
-        onError: (Exception) -> Unit
-    ) {
-        try {
-            val parameters = AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(activity)
-                .withScopes(SCOPES.toList())
-                .withPrompt(Prompt.SELECT_ACCOUNT)
-                .withCallback(object : AuthenticationCallback {
-                    override fun onSuccess(authenticationResult: IAuthenticationResult) {
-                        Log.d(TAG, "Sign in success")
-                        onSuccess(authenticationResult.accessToken)
-                    }
-
-                    override fun onError(exception: MsalException) {
-                        Log.e(TAG, "Sign in error", exception)
-                        onError(exception)
-                    }
-
-                    override fun onCancel() {
-                        Log.d(TAG, "Sign in canceled")
-                        onError(Exception("Sign in canceled"))
-                    }
-                })
-                .build()
-
-            app.acquireToken(parameters)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error during sign in", e)
-            onError(e)
-        }
-    }
-
     companion object {
         private const val TAG = "AuthManager"
+        // Updated minimal set of scopes
         private val SCOPES = arrayOf(
-            "User.Read",
-            "email",
-            "profile",
             "openid",
-            "offline_access"
+            "profile",
+            "User.Read" // Basic Microsoft Graph API scope
         )
 
         @SuppressLint("StaticFieldLeak")
