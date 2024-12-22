@@ -12,7 +12,9 @@ data class IssueRequest(
     val longitude: Double? = null,      // Changed: moved from LocationData to top level
     val customLocation: String? = null,
     @Json(name = "isUsingCustomLocation") // ensure exact property name match
-    val isUsingCustomLocation: Boolean
+    val isUsingCustomLocation: Boolean,
+    val userEmail: String,  // Required field for user identification
+    val userName: String    // Required field for user name
 )
 
 @JsonClass(generateAdapter = true)

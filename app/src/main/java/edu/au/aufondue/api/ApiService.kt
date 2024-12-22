@@ -7,6 +7,12 @@ import retrofit2.Response
 import retrofit2.http.*
 
 interface ApiService {
+    @POST("api/users/create")
+    suspend fun createOrGetUser(
+        @Query("username") username: String,
+        @Query("email") email: String
+    ): Response<ApiResponse<UserResponse>>
+
     @Multipart
     @POST("api/issues")
     suspend fun createIssue(

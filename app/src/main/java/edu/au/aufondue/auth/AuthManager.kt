@@ -3,18 +3,18 @@ package edu.au.aufondue.auth
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.util.Log
-import com.microsoft.identity.client.AcquireTokenParameters
-import com.microsoft.identity.client.AuthenticationCallback
-import com.microsoft.identity.client.IAuthenticationResult
-import com.microsoft.identity.client.IPublicClientApplication
-import com.microsoft.identity.client.ISingleAccountPublicClientApplication
-import com.microsoft.identity.client.Prompt
-import com.microsoft.identity.client.PublicClientApplication
+import com.microsoft.identity.client.*
 import com.microsoft.identity.client.exception.MsalException
 import edu.au.aufondue.R
+import edu.au.aufondue.api.RetrofitClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AuthManager private constructor(private val activity: Activity) {
     private var mSingleAccountApp: ISingleAccountPublicClientApplication? = null
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     init {
         PublicClientApplication.createSingleAccountPublicClientApplication(
@@ -24,8 +24,6 @@ class AuthManager private constructor(private val activity: Activity) {
                 override fun onCreated(application: ISingleAccountPublicClientApplication) {
                     mSingleAccountApp = application
                     Log.d(TAG, "MSAL application created successfully")
-
-                    // Clear any existing account on initialization
                     clearCurrentAccount()
                 }
 
@@ -53,10 +51,27 @@ class AuthManager private constructor(private val activity: Activity) {
         }
     }
 
+    private suspend fun createOrVerifyUser(email: String, username: String) {
+        try {
+            withContext(Dispatchers.IO) {
+                val response = RetrofitClient.apiService.createOrGetUser(username, email)
+                if (response.isSuccessful && response.body()?.success == true) {
+                    withContext(Dispatchers.Main) {
+                        UserPreferences.getInstance(activity).saveUserInfo(email, username)
+                    }
+                } else {
+                    throw Exception(response.body()?.message ?: "Failed to create/verify user")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error creating/verifying user", e)
+            throw e
+        }
+    }
+
     fun signIn(onSuccess: (String) -> Unit, onError: (Exception) -> Unit) {
         mSingleAccountApp?.let { app ->
             try {
-                // Build parameters with minimal required scopes
                 val parameters = AcquireTokenParameters.Builder()
                     .startAuthorizationFromActivity(activity)
                     .withScopes(SCOPES.toList())
@@ -64,7 +79,17 @@ class AuthManager private constructor(private val activity: Activity) {
                     .withCallback(object : AuthenticationCallback {
                         override fun onSuccess(authenticationResult: IAuthenticationResult) {
                             Log.d(TAG, "Sign in success")
-                            onSuccess(authenticationResult.accessToken)
+                            coroutineScope.launch {
+                                try {
+                                    val email = authenticationResult.account.username
+                                    val name = authenticationResult.account.username.substringBefore("@")
+
+                                    createOrVerifyUser(email, name)
+                                    onSuccess(authenticationResult.accessToken)
+                                } catch (e: Exception) {
+                                    onError(e)
+                                }
+                            }
                         }
 
                         override fun onError(exception: MsalException) {
@@ -89,13 +114,28 @@ class AuthManager private constructor(private val activity: Activity) {
         }
     }
 
+    fun signOut(onComplete: () -> Unit) {
+        mSingleAccountApp?.let { app ->
+            app.signOut(object : ISingleAccountPublicClientApplication.SignOutCallback {
+                override fun onSignOut() {
+                    UserPreferences.getInstance(activity).clearUserInfo()
+                    onComplete()
+                }
+
+                override fun onError(exception: MsalException) {
+                    Log.e(TAG, "Error signing out", exception)
+                    onComplete()
+                }
+            })
+        } ?: onComplete()
+    }
+
     companion object {
         private const val TAG = "AuthManager"
-        // Updated minimal set of scopes
         private val SCOPES = arrayOf(
             "openid",
             "profile",
-            "User.Read" // Basic Microsoft Graph API scope
+            "User.Read"
         )
 
         @SuppressLint("StaticFieldLeak")

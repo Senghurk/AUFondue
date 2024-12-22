@@ -10,6 +10,7 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import edu.au.aufondue.api.RetrofitClient
 import edu.au.aufondue.api.models.IssueRequest
 import edu.au.aufondue.api.models.LocationData
+import edu.au.aufondue.auth.UserPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,11 +23,8 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.*
 
 data class ReportState(
-    val title: String = "",           // Added title field
     val description: String = "",
     val category: String = "",
     val customCategory: String = "",
@@ -51,8 +49,17 @@ class ReportViewModel : ViewModel() {
         this.context = context
     }
 
-    fun onTitleChange(title: String) {         // Added title change handler
-        _state.update { it.copy(title = title) }
+    private fun getUserInfo(): Pair<String, String> {
+        val context = context ?: throw IllegalStateException("Context not set")
+        val prefs = UserPreferences.getInstance(context)
+        val email = prefs.getUserEmail()
+        val username = prefs.getUsername()
+
+        if (email == null || username == null) {
+            throw IllegalStateException("User not logged in")
+        }
+
+        return email to username
     }
 
     fun onDescriptionChange(description: String) {
@@ -107,18 +114,15 @@ class ReportViewModel : ViewModel() {
         }
     }
 
-    private fun generateTitle(currentState: ReportState): String {
-        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val category = if (currentState.category == "Custom")
-            currentState.customCategory
-        else
-            currentState.category
-        return "$category Issue Report - $timestamp"
-    }
-
     private fun validateInput() {
         val currentState = state.value
         val errors = mutableListOf<String>()
+
+        try {
+            getUserInfo() // Validate user is logged in
+        } catch (e: IllegalStateException) {
+            errors.add("User must be logged in to submit a report")
+        }
 
         when {
             currentState.description.isBlank() ->
@@ -131,7 +135,6 @@ class ReportViewModel : ViewModel() {
                 errors.add("Please attach at least one photo")
         }
 
-        // Location validation
         when {
             currentState.isUsingCustomLocation && currentState.customLocation.isBlank() ->
                 errors.add("Please enter a location description")
@@ -166,6 +169,37 @@ class ReportViewModel : ViewModel() {
         }
     }
 
+    private fun createIssueRequest(currentState: ReportState): IssueRequest {
+        val (userEmail, userName) = getUserInfo()
+
+        return IssueRequest(
+            description = currentState.description,
+            category = if (currentState.category == "Custom")
+                currentState.customCategory
+            else
+                currentState.category,
+            customCategory = if (currentState.category == "Custom")
+                currentState.customCategory
+            else
+                null,
+            latitude = if (!currentState.isUsingCustomLocation)
+                currentState.location?.latitude
+            else
+                null,
+            longitude = if (!currentState.isUsingCustomLocation)
+                currentState.location?.longitude
+            else
+                null,
+            customLocation = if (currentState.isUsingCustomLocation)
+                currentState.customLocation
+            else
+                null,
+            isUsingCustomLocation = currentState.isUsingCustomLocation,
+            userEmail = userEmail,
+            userName = userName
+        )
+    }
+
     fun submitReport(onSuccess: () -> Unit) {
         viewModelScope.launch {
             try {
@@ -175,37 +209,7 @@ class ReportViewModel : ViewModel() {
                 val currentState = state.value
                 val ctx = context ?: throw IllegalStateException("Context not set")
 
-                // Add this just before making the API call in submitReport
-                Log.d("ReportViewModel", "Location data - isUsingCustomLocation: ${currentState.isUsingCustomLocation}")
-                Log.d("ReportViewModel", "Location data - latitude: ${currentState.location?.latitude}")
-                Log.d("ReportViewModel", "Location data - longitude: ${currentState.location?.longitude}")
-
-                // Create the request object
-                val issueRequest = IssueRequest(
-                    description = currentState.description,
-                    category = if (currentState.category == "Custom")
-                        currentState.customCategory
-                    else
-                        currentState.category,
-                    customCategory = if (currentState.category == "Custom")
-                        currentState.customCategory
-                    else
-                        null,
-                    latitude = if (!currentState.isUsingCustomLocation)
-                        currentState.location?.latitude
-                    else
-                        null,
-                    longitude = if (!currentState.isUsingCustomLocation)
-                        currentState.location?.longitude
-                    else
-                        null,
-                    customLocation = if (currentState.isUsingCustomLocation)
-                        currentState.customLocation
-                    else
-                        null,
-                    isUsingCustomLocation = currentState.isUsingCustomLocation
-                )
-
+                val issueRequest = createIssueRequest(currentState)
                 val issueJson = moshi.adapter(IssueRequest::class.java).toJson(issueRequest)
 
                 Log.d("ReportViewModel", "Request JSON: $issueJson")
@@ -233,8 +237,7 @@ class ReportViewModel : ViewModel() {
                     throw IllegalStateException("Failed to process photos")
                 }
 
-                Log.d("ReportViewModel", "Submitting report with request: $issueJson")
-                Log.d("ReportViewModel", "Photos count: ${photoParts.size}")
+                Log.d("ReportViewModel", "Submitting report with user info - email=${issueRequest.userEmail}, name=${issueRequest.userName}")
 
                 val response = RetrofitClient.apiService.createIssue(issueRequestBody, photoParts)
 
