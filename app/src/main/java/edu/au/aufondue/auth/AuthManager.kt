@@ -54,8 +54,16 @@ class AuthManager private constructor(private val activity: Activity) {
     private suspend fun createOrVerifyUser(email: String, username: String) {
         try {
             withContext(Dispatchers.IO) {
+                Log.d(TAG, "Attempting to create/verify user: $username, $email")
                 val response = RetrofitClient.apiService.createOrGetUser(username, email)
-                if (response.isSuccessful && response.body()?.success == true) {
+                Log.d(TAG, "Response: ${response.code()} ${response.message()}")
+                Log.d(TAG, "Body: ${response.body()}")
+
+                if (!response.isSuccessful) {
+                    val errorMsg = response.errorBody()?.string() ?: "Unknown error"
+                    Log.e(TAG, "Error body: $errorMsg")
+                    throw Exception("Failed to create/verify user: ${response.code()} - $errorMsg")
+                } else if (response.body()?.success == true) {
                     withContext(Dispatchers.Main) {
                         UserPreferences.getInstance(activity).saveUserInfo(email, username)
                     }

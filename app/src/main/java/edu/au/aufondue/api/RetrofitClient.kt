@@ -30,7 +30,7 @@ class LocalDateTimeAdapter {
 object RetrofitClient {
 //    private const val BASE_URL = "http://10.0.2.2:8080/"
 
-    private const val BASE_URL = "https://aufonduebackend--ltqvzao.kindisland-399ef298.southeastasia.azurecontainerapps.io"
+    private const val BASE_URL = "https://aufondue-backend--aufondue-backend-rev5.kindisland-399ef298.southeastasia.azurecontainerapps.io/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -58,5 +58,5 @@ object RetrofitClient {
     val apiService: ApiService by lazy {
         retrofit.create(ApiService::class.java)
     }
-
 }
+
