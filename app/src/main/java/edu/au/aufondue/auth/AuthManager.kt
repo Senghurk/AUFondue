@@ -17,6 +17,7 @@ class AuthManager private constructor(private val activity: Activity) {
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     init {
+        Log.d(TAG, "Initializing MSAL PublicClientApplication...")
         PublicClientApplication.createSingleAccountPublicClientApplication(
             activity.applicationContext,
             R.raw.auth_config,
@@ -24,7 +25,6 @@ class AuthManager private constructor(private val activity: Activity) {
                 override fun onCreated(application: ISingleAccountPublicClientApplication) {
                     mSingleAccountApp = application
                     Log.d(TAG, "MSAL application created successfully")
-                    clearCurrentAccount()
                 }
 
                 override fun onError(exception: MsalException) {
@@ -32,23 +32,6 @@ class AuthManager private constructor(private val activity: Activity) {
                 }
             }
         )
-    }
-
-    private fun clearCurrentAccount() {
-        mSingleAccountApp?.let { app ->
-            try {
-                app.signOut(object : ISingleAccountPublicClientApplication.SignOutCallback {
-                    override fun onSignOut() {
-                        Log.d(TAG, "Signed out successfully")
-                    }
-                    override fun onError(exception: MsalException) {
-                        Log.e(TAG, "Error signing out", exception)
-                    }
-                })
-            } catch (e: Exception) {
-                Log.e(TAG, "Error during sign out", e)
-            }
-        }
     }
 
     private suspend fun createOrVerifyUser(email: String, username: String) {
@@ -78,73 +61,109 @@ class AuthManager private constructor(private val activity: Activity) {
     }
 
     fun signIn(onSuccess: (String) -> Unit, onError: (Exception) -> Unit) {
-        mSingleAccountApp?.let { app ->
-            try {
-                val parameters = AcquireTokenParameters.Builder()
-                    .startAuthorizationFromActivity(activity)
-                    .withScopes(SCOPES.toList())
-                    .withPrompt(Prompt.SELECT_ACCOUNT)
-                    .withCallback(object : AuthenticationCallback {
-                        override fun onSuccess(authenticationResult: IAuthenticationResult) {
-                            Log.d(TAG, "Sign in success")
-                            coroutineScope.launch {
-                                try {
-                                    val email = authenticationResult.account.username
-                                    val name = authenticationResult.account.username.substringBefore("@")
-
-                                    createOrVerifyUser(email, name)
-                                    onSuccess(authenticationResult.accessToken)
-                                } catch (e: Exception) {
-                                    onError(e)
-                                }
-                            }
-                        }
-
-                        override fun onError(exception: MsalException) {
-                            Log.e(TAG, "Sign in error", exception)
-                            onError(exception)
-                        }
-
-                        override fun onCancel() {
-                            Log.d(TAG, "Sign in canceled")
-                            onError(Exception("Sign in canceled"))
-                        }
-                    })
-                    .build()
-
-                app.acquireToken(parameters)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error during sign in", e)
-                onError(e)
-            }
-        } ?: run {
+        if (mSingleAccountApp == null) {
+            Log.e(TAG, "MSAL client not initialized")
             onError(Exception("MSAL client not initialized"))
+            return
         }
+
+        // Step 1: Check if an account is already signed in
+        mSingleAccountApp?.getCurrentAccountAsync(object : ISingleAccountPublicClientApplication.CurrentAccountCallback {
+            override fun onAccountLoaded(account: IAccount?) {
+                if (account != null) {
+                    Log.d(TAG, "Existing account found: ${account.username}. Signing out first.")
+                    signOutThenSignIn(onSuccess, onError)
+                } else {
+                    Log.d(TAG, "No existing account found. Proceeding with sign-in.")
+                    proceedWithSignIn(onSuccess, onError)
+                }
+            }
+
+            override fun onAccountChanged(priorAccount: IAccount?, currentAccount: IAccount?) {
+                Log.d(TAG, "Account changed: Prior=$priorAccount, Current=$currentAccount")
+            }
+
+            override fun onError(exception: MsalException) {
+                Log.e(TAG, "Error checking current account", exception)
+                onError(exception)
+            }
+        })
     }
 
-    fun signOut(onComplete: () -> Unit) {
-        mSingleAccountApp?.let { app ->
-            app.signOut(object : ISingleAccountPublicClientApplication.SignOutCallback {
-                override fun onSignOut() {
-                    UserPreferences.getInstance(activity).clearUserInfo()
-                    onComplete()
+    private fun signOutThenSignIn(onSuccess: (String) -> Unit, onError: (Exception) -> Unit) {
+        mSingleAccountApp?.signOut(object : ISingleAccountPublicClientApplication.SignOutCallback {
+            override fun onSignOut() {
+                Log.d(TAG, "Successfully signed out. Now proceeding with sign-in.")
+                proceedWithSignIn(onSuccess, onError)
+            }
+
+            override fun onError(exception: MsalException) {
+                Log.e(TAG, "Error signing out", exception)
+                onError(exception)
+            }
+        })
+    }
+
+    private fun proceedWithSignIn(onSuccess: (String) -> Unit, onError: (Exception) -> Unit) {
+        val parameters = AcquireTokenParameters.Builder()
+            .startAuthorizationFromActivity(activity)
+            .withScopes(SCOPES.toList())
+            .withPrompt(Prompt.SELECT_ACCOUNT) // Ensures user selects an account
+            .withCallback(object : AuthenticationCallback {
+                override fun onSuccess(authenticationResult: IAuthenticationResult) {
+                    Log.d(TAG, "Sign-in successful with account: ${authenticationResult.account.username}")
+                    coroutineScope.launch {
+                        try {
+                            val email = authenticationResult.account.username
+                            val name = email.substringBefore("@")
+
+                            createOrVerifyUser(email, name)
+                            onSuccess(authenticationResult.accessToken)
+                        } catch (e: Exception) {
+                            onError(e)
+                        }
+                    }
                 }
 
                 override fun onError(exception: MsalException) {
-                    Log.e(TAG, "Error signing out", exception)
-                    onComplete()
+                    Log.e(TAG, "Sign-in error", exception)
+                    onError(exception)
+                }
+
+                override fun onCancel() {
+                    Log.d(TAG, "Sign-in canceled")
+                    onError(Exception("Sign-in canceled"))
                 }
             })
-        } ?: onComplete()
+            .build()
+
+        mSingleAccountApp?.acquireToken(parameters)
+    }
+
+    fun signOut(onComplete: () -> Unit) {
+        if (mSingleAccountApp == null) {
+            Log.e(TAG, "MSAL client not initialized for sign-out")
+            onComplete()
+            return
+        }
+
+        mSingleAccountApp?.signOut(object : ISingleAccountPublicClientApplication.SignOutCallback {
+            override fun onSignOut() {
+                Log.d(TAG, "Signed out successfully")
+                UserPreferences.getInstance(activity).clearUserInfo()
+                onComplete()
+            }
+
+            override fun onError(exception: MsalException) {
+                Log.e(TAG, "Error signing out", exception)
+                onComplete()
+            }
+        })
     }
 
     companion object {
         private const val TAG = "AuthManager"
-        private val SCOPES = arrayOf(
-            "openid",
-            "profile",
-            "User.Read"
-        )
+        private val SCOPES = arrayOf("openid", "profile", "User.Read")
 
         @SuppressLint("StaticFieldLeak")
         @Volatile
