@@ -35,11 +35,11 @@ class NotificationViewModel : ViewModel() {
     }
 
     private fun loadNotifications() {
-        // Simulated notifications data - now with issueId
+        // Updated simulated notifications data with actual issue IDs from the database
         _notifications.value = listOf(
             Notification(
                 id = "1",
-                issueId = 1L,
+                issueId = 39L, // Updated to use actual ID
                 sender = "Admin",
                 message = "Issue resolved, check now",
                 timestamp = System.currentTimeMillis(),
@@ -48,7 +48,7 @@ class NotificationViewModel : ViewModel() {
             ),
             Notification(
                 id = "2",
-                issueId = 2L,
+                issueId = 40L, // Updated to use actual ID
                 sender = "Admin",
                 message = "Issue resolved, check now",
                 timestamp = System.currentTimeMillis(),
@@ -58,7 +58,7 @@ class NotificationViewModel : ViewModel() {
             ),
             Notification(
                 id = "3",
-                issueId = 3L,
+                issueId = 39L, // Repeated ID is fine for testing
                 sender = "Admin",
                 message = "Please review the update",
                 timestamp = System.currentTimeMillis() - 86400000,
@@ -67,7 +67,7 @@ class NotificationViewModel : ViewModel() {
             ),
             Notification(
                 id = "4",
-                issueId = 4L,
+                issueId = 40L, // Repeated ID is fine for testing
                 sender = "Admin",
                 message = "Issue update shared",
                 timestamp = System.currentTimeMillis() - 86400000,
@@ -76,7 +76,7 @@ class NotificationViewModel : ViewModel() {
             ),
             Notification(
                 id = "5",
-                issueId = 5L,
+                issueId = 39L, // Repeated ID is fine for testing
                 sender = "Admin",
                 message = "Issue resolved successfully",
                 timestamp = System.currentTimeMillis() - 172800000,
@@ -85,7 +85,7 @@ class NotificationViewModel : ViewModel() {
             ),
             Notification(
                 id = "6",
-                issueId = 6L,
+                issueId = 40L, // Repeated ID is fine for testing
                 sender = "Admin",
                 message = "Please review and respond",
                 timestamp = System.currentTimeMillis() - 172800000,
