@@ -1,5 +1,9 @@
 package edu.au.aufondue.screens.notification
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Error
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -12,7 +16,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
@@ -30,6 +34,7 @@ import coil3.compose.SubcomposeAsyncImage
 import coil3.request.ImageRequest
 import edu.au.aufondue.api.models.UpdateResponse
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun NotificationDetailsScreen(
@@ -61,25 +66,53 @@ fun NotificationDetailsScreen(
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)
                 )
-            } else if (state.error != null) {
+            } else if (state.error != null) // This is a partial fix for the error handling section of NotificationDetailsScreen.kt
+
+// Replace the error section in the NotificationDetailsScreen.kt file with this improved version
+            else if (state.error != null) {
                 Column(
                     modifier = Modifier
-                        .align(Alignment.Center)
+                        .fillMaxSize()
                         .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
+                    Icon(
+                        imageVector = Icons.Default.Error,
+                        contentDescription = "Error",
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.error
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     Text(
-                        text = "Error: ${state.error}",
+                        text = "Error",
+                        style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.error
                     )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = state.error ?: "Something went wrong",
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
                     Button(
                         onClick = { viewModel.loadIssueDetails(issueId) },
-                        modifier = Modifier.padding(top = 8.dp)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
                     ) {
                         Text("Retry")
                     }
                 }
-            } else {
+            }else {
                 val issue = state.issue
                 if (issue != null) {
                     LazyColumn(
@@ -310,6 +343,7 @@ fun IssuePhotosCard(photos: List<String>) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) {

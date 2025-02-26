@@ -1,6 +1,7 @@
 package edu.au.aufondue.api
 
 import android.annotation.SuppressLint
+import android.util.Log
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.ToJson
@@ -9,9 +10,13 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import java.security.cert.X509Certificate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
 class LocalDateTimeAdapter {
     @SuppressLint("NewApi")
@@ -28,21 +33,45 @@ class LocalDateTimeAdapter {
 }
 
 object RetrofitClient {
-//    private const val BASE_URL = "http://10.0.2.2:8080/"
+    private const val TAG = "RetrofitClient"
 
-    private const val BASE_URL = "https://aufondue-backend.kindisland-399ef298.southeastasia.azurecontainerapps.io/"
+    // Keep both URLs for easy switching during development/debugging
+    private const val BASE_URL_LOCAL = "http://10.0.2.2:8080/"
+    private const val BASE_URL_PROD = "https://aufondue-backend.kindisland-399ef298.southeastasia.azurecontainerapps.io/"
+
+    // Select which URL to use
+    private const val BASE_URL = BASE_URL_PROD
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
-    private val okHttpClient = OkHttpClient.Builder()
-        .addInterceptor(loggingInterceptor)
-        // Add timeouts
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS)
-        .build()
+    private val okHttpClient by lazy {
+        createOkHttpClient()
+    }
+
+    private fun createOkHttpClient(): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .addInterceptor { chain ->
+                val request = chain.request()
+                Log.d(TAG, "Making request: ${request.method} ${request.url}")
+
+                try {
+                    val response = chain.proceed(request)
+                    Log.d(TAG, "Got response: ${response.code} for ${request.url}")
+                    response
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error during API request to ${request.url}", e)
+                    throw e
+                }
+            }
+            // Add timeouts
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build()
+    }
 
     private val moshi = Moshi.Builder()
         .add(KotlinJsonAdapterFactory())
@@ -59,4 +88,3 @@ object RetrofitClient {
         retrofit.create(ApiService::class.java)
     }
 }
-

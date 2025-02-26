@@ -42,11 +42,13 @@ interface ApiService {
         @Query("status") status: String? = null
     ): Response<ApiResponse<List<IssueResponse>>>
 
+    // Fixed endpoint to properly match backend API
     @GET("api/issues/{id}")
     suspend fun getIssueById(
         @Path("id") id: Long
     ): Response<ApiResponse<IssueResponse>>
 
+    // Changed from List<UpdateResponse> to ApiResponse<List<UpdateResponse>>
     @GET("api/issues/{issueId}/updates")
     suspend fun getIssueUpdates(
         @Path("issueId") issueId: Long
