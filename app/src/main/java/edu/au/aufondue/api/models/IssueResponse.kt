@@ -17,10 +17,9 @@ data class IssueResponse(
     val photoUrls: List<String>,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
-    val reportedBy: UserResponse?
-) {
-    val usingCustomLocation: Any
-}
+    val reportedBy: UserResponse?,
+    val usingCustomLocation: Boolean = false
+)
 
 data class UserResponse(
     val id: Long,

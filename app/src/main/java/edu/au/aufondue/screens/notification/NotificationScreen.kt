@@ -71,8 +71,7 @@ fun NotificationScreen(
                 NotificationItem(
                     notification = notification,
                     onViewClick = {
-                        navController.navigate("${Screen.NotificationDetails.route}/${notification.issueId}")
-                    }
+                        navController.navigate(Screen.NotificationDetails.createRoute(notification.issueId))                    }
                 )
             }
 
