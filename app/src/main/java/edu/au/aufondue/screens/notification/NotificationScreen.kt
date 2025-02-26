@@ -1,25 +1,27 @@
 package edu.au.aufondue.screens.notification
 
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import edu.au.aufondue.R
 import edu.au.aufondue.navigation.Screen
@@ -31,7 +33,15 @@ fun NotificationScreen(
     navController: NavController,
     viewModel: NotificationViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
+    val context = LocalContext.current
     val notifications by viewModel.notifications.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
+
+    // Load notifications when the screen is displayed
+    LaunchedEffect(Unit) {
+        viewModel.loadNotifications(context)
+    }
 
     Scaffold(
         topBar = {
@@ -53,62 +63,111 @@ fun NotificationScreen(
             )
         }
     ) { padding ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            item {
-                Text(
-                    text = "New report",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(16.dp),
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            when {
+                isLoading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+                error != null -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Error,
+                            contentDescription = "Error",
+                            modifier = Modifier.size(48.dp),
+                            tint = MaterialTheme.colorScheme.error
+                        )
 
-            items(notifications.take(2)) { notification ->
-                NotificationItem(
-                    notification = notification,
-                    onViewClick = {
-                        navController.navigate(Screen.NotificationDetails.createRoute(notification.issueId))                    }
-                )
-            }
+                        Spacer(modifier = Modifier.height(16.dp))
 
-            item {
-                Text(
-                    text = "This month",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(16.dp),
-                    fontWeight = FontWeight.Bold
-                )
-            }
+                        Text(
+                            text = "Error",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
 
-            items(notifications.subList(2, 4)) { notification ->
-                NotificationItem(
-                    notification = notification,
-                    onViewClick = {
-                        navController.navigate("${Screen.NotificationDetails.route}/${notification.issueId}")
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = error ?: "Something went wrong",
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Button(
+                            onClick = { viewModel.loadNotifications(context) },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            Text("Retry")
+                        }
                     }
-                )
-            }
-
-            item {
-                Text(
-                    text = "Yesterday",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(16.dp),
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            items(notifications.subList(4, notifications.size)) { notification ->
-                NotificationItem(
-                    notification = notification,
-                    onViewClick = {
-                        navController.navigate("${Screen.NotificationDetails.route}/${notification.issueId}")
+                }
+                notifications.isEmpty() -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "No notifications",
+                            style = MaterialTheme.typography.bodyLarge,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
-                )
+                }
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                    ) {
+                        val groupedNotifications = notifications.groupBy { notification ->
+                            when {
+                                System.currentTimeMillis() - notification.timestamp < 24 * 60 * 60 * 1000 -> "New report"
+                                System.currentTimeMillis() - notification.timestamp < 7 * 24 * 60 * 60 * 1000 -> "This month"
+                                else -> "Yesterday"
+                            }
+                        }
+
+                        groupedNotifications.forEach { (group, notificationsInGroup) ->
+                            item {
+                                Text(
+                                    text = group,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.padding(16.dp),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
+                            items(notificationsInGroup) { notification ->
+                                NotificationItem(
+                                    notification = notification,
+                                    onViewClick = {
+                                        navController.navigate(Screen.NotificationDetails.createRoute(notification.issueId))
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }

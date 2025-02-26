@@ -10,13 +10,9 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
-import java.security.cert.X509Certificate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManager
-import javax.net.ssl.X509TrustManager
 
 class LocalDateTimeAdapter {
     @SuppressLint("NewApi")
@@ -41,6 +37,9 @@ object RetrofitClient {
 
     // Select which URL to use
     private const val BASE_URL = BASE_URL_PROD
+
+    // Extract domain for image URL fixing
+    val DOMAIN = BASE_URL.removeSuffix("/")
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -86,5 +85,23 @@ object RetrofitClient {
 
     val apiService: ApiService by lazy {
         retrofit.create(ApiService::class.java)
+    }
+
+    /**
+     * Fixes image URL issues by ensuring they have the proper domain
+     */
+    fun fixImageUrl(url: String): String {
+        // If the URL already has http/https, it's complete
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+            return url
+        }
+
+        // If it starts with a slash, append to domain
+        if (url.startsWith("/")) {
+            return DOMAIN + url
+        }
+
+        // Otherwise, assume it's a relative path
+        return "$DOMAIN/$url"
     }
 }
