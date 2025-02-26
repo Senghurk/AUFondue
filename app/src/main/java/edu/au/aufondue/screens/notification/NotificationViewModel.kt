@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 data class Notification(
     val id: String,
+    val issueId: Long, // Added issueId to link to the specific issue
     val sender: String,
     val message: String,
     val timestamp: Long,
@@ -34,10 +35,11 @@ class NotificationViewModel : ViewModel() {
     }
 
     private fun loadNotifications() {
-        // Simulated notifications data
+        // Simulated notifications data - now with issueId
         _notifications.value = listOf(
             Notification(
                 id = "1",
+                issueId = 1L,
                 sender = "Admin",
                 message = "Issue resolved, check now",
                 timestamp = System.currentTimeMillis(),
@@ -46,6 +48,7 @@ class NotificationViewModel : ViewModel() {
             ),
             Notification(
                 id = "2",
+                issueId = 2L,
                 sender = "Admin",
                 message = "Issue resolved, check now",
                 timestamp = System.currentTimeMillis(),
@@ -55,6 +58,7 @@ class NotificationViewModel : ViewModel() {
             ),
             Notification(
                 id = "3",
+                issueId = 3L,
                 sender = "Admin",
                 message = "Please review the update",
                 timestamp = System.currentTimeMillis() - 86400000,
@@ -63,6 +67,7 @@ class NotificationViewModel : ViewModel() {
             ),
             Notification(
                 id = "4",
+                issueId = 4L,
                 sender = "Admin",
                 message = "Issue update shared",
                 timestamp = System.currentTimeMillis() - 86400000,
@@ -71,6 +76,7 @@ class NotificationViewModel : ViewModel() {
             ),
             Notification(
                 id = "5",
+                issueId = 5L,
                 sender = "Admin",
                 message = "Issue resolved successfully",
                 timestamp = System.currentTimeMillis() - 172800000,
@@ -79,6 +85,7 @@ class NotificationViewModel : ViewModel() {
             ),
             Notification(
                 id = "6",
+                issueId = 6L,
                 sender = "Admin",
                 message = "Please review and respond",
                 timestamp = System.currentTimeMillis() - 172800000,

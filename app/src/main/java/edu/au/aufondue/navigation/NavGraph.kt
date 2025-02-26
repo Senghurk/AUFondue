@@ -14,7 +14,9 @@ sealed class Screen(val route: String) {
     object Report : Screen("report")
     object Map : Screen("map")
     object Notification : Screen("notification")
-    object NotificationDetails : Screen("notification_details")
+    object NotificationDetails : Screen("notification_details/{issueId}") {
+        fun createRoute(issueId: Long): String = "notification_details/$issueId"
+    }
 }
 
 data class NavigationItem(

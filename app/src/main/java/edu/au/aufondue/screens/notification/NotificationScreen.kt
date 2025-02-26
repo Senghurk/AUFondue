@@ -71,7 +71,7 @@ fun NotificationScreen(
                 NotificationItem(
                     notification = notification,
                     onViewClick = {
-                        navController.navigate(Screen.NotificationDetails.route)
+                        navController.navigate("${Screen.NotificationDetails.route}/${notification.issueId}")
                     }
                 )
             }
@@ -89,7 +89,7 @@ fun NotificationScreen(
                 NotificationItem(
                     notification = notification,
                     onViewClick = {
-                        navController.navigate(Screen.NotificationDetails.route)
+                        navController.navigate("${Screen.NotificationDetails.route}/${notification.issueId}")
                     }
                 )
             }
@@ -107,7 +107,7 @@ fun NotificationScreen(
                 NotificationItem(
                     notification = notification,
                     onViewClick = {
-                        navController.navigate(Screen.NotificationDetails.route)
+                        navController.navigate("${Screen.NotificationDetails.route}/${notification.issueId}")
                     }
                 )
             }

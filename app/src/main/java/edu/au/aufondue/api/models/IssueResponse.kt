@@ -18,7 +18,9 @@ data class IssueResponse(
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
     val reportedBy: UserResponse?
-)
+) {
+    val usingCustomLocation: Any
+}
 
 data class UserResponse(
     val id: Long,

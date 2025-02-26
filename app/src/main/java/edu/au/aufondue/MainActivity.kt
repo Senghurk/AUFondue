@@ -18,10 +18,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import coil3.ImageLoader
 import edu.au.aufondue.navigation.Screen
 import edu.au.aufondue.navigation.bottomNavigationItems
@@ -152,8 +154,13 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
 
-                            composable(Screen.NotificationDetails.route) {
+                            composable(
+                                route = "notification_details/{issueId}",
+                                arguments = listOf(navArgument("issueId") { type = NavType.LongType })
+                            ) { backStackEntry ->
+                                val issueId = backStackEntry.arguments?.getLong("issueId") ?: 0L
                                 NotificationDetailsScreen(
+                                    issueId = issueId,
                                     onNavigateBack = { navController.popBackStack() }
                                 )
                             }

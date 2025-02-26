@@ -47,6 +47,11 @@ interface ApiService {
         @Path("id") id: Long
     ): Response<ApiResponse<IssueResponse>>
 
+    @GET("api/issues/{issueId}/updates")
+    suspend fun getIssueUpdates(
+        @Path("issueId") issueId: Long
+    ): Response<List<UpdateResponse>>
+
     @GET("api/issues/nearby")
     suspend fun getNearbyIssues(
         @Query("latitude") latitude: Double,
@@ -58,5 +63,4 @@ interface ApiService {
     suspend fun deleteIssue(
         @Path("id") id: Long
     ): Response<ApiResponse<Void>>
-
 }
