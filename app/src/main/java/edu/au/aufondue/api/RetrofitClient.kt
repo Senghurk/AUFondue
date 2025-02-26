@@ -91,6 +91,19 @@ object RetrofitClient {
      * Fixes image URL issues by ensuring they have the proper domain
      */
     fun fixImageUrl(url: String): String {
+        Log.d(TAG, "Original image URL: $url")
+
+        if (url.isEmpty()) {
+            return ""
+        }
+
+        // Fix Azure Blob Storage URLs
+        if (url.contains("blob.core.windows.net")) {
+            val sanitizedUrl = url.replace(" ", "%20").trim()
+            Log.d(TAG, "Sanitized Azure blob URL: $sanitizedUrl")
+            return sanitizedUrl
+        }
+
         // If the URL already has http/https, it's complete
         if (url.startsWith("http://") || url.startsWith("https://")) {
             return url
@@ -98,7 +111,7 @@ object RetrofitClient {
 
         // If it starts with a slash, append to domain
         if (url.startsWith("/")) {
-            return DOMAIN + url
+            return "$DOMAIN$url"
         }
 
         // Otherwise, assume it's a relative path

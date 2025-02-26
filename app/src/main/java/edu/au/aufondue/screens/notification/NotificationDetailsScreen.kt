@@ -4,17 +4,14 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Error
@@ -33,9 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
-import coil3.compose.SubcomposeAsyncImage
+import coil3.request.CachePolicy
 import coil3.request.ImageRequest
-import coil3.request.crossfade
 import edu.au.aufondue.api.RetrofitClient
 import edu.au.aufondue.api.models.UpdateResponse
 
@@ -45,7 +41,7 @@ import edu.au.aufondue.api.models.UpdateResponse
 fun NotificationDetailsScreen(
     issueId: Long,
     onNavigateBack: () -> Unit,
-    viewModel: NotificationDetailsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: NotificationDetailsViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -258,6 +254,7 @@ fun NotificationDetailsScreen(
 @Composable
 fun IssuePhotosCard(photos: List<String>) {
     val pagerState = rememberPagerState(pageCount = { photos.size })
+    val context = LocalContext.current
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -289,46 +286,47 @@ fun IssuePhotosCard(photos: List<String>) {
                             .padding(horizontal = 4.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        val fixedUrl = RetrofitClient.fixImageUrl(photos[page])
+                        val originalUrl = photos[page]
+                        val fixedUrl = RetrofitClient.fixImageUrl(originalUrl)
                         Log.d("IssuePhotosCard", "Loading image from URL: $fixedUrl")
 
-                        SubcomposeAsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
+                        AsyncImage(
+                            model = ImageRequest.Builder(context)
                                 .data(fixedUrl)
-                                .crossfade(true)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .memoryCachePolicy(CachePolicy.ENABLED)
                                 .build(),
                             contentDescription = "Report Photo ${page + 1}",
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(RoundedCornerShape(12.dp)),
                             contentScale = ContentScale.Fit,
-                            loading = {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.align(Alignment.Center)
-                                )
-                            },
-                            error = {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .background(Color.LightGray),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Text("Image not available")
-                                        Text(
-                                            text = fixedUrl,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            fontSize = 8.sp,
-                                            maxLines = 2,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    }
-                                }
-                            }
                         )
+
+                        // Fallback text if image fails to load
+                        if (originalUrl.isNullOrEmpty()) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.LightGray)
+                                    .padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    "Image not available",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = fixedUrl,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontSize = 8.sp,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
                     }
                 }
 
@@ -422,8 +420,9 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                     modifier = Modifier.padding(top = 8.dp)
                 )
 
-                // Display photos in a similar way to the issue photos
+                // Display photos in a horizontal pager
                 val pagerState = rememberPagerState(pageCount = { update.photoUrls.size })
+                val context = LocalContext.current
 
                 Box(
                     modifier = Modifier
@@ -440,46 +439,47 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                                 .padding(horizontal = 4.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            val fixedUrl = RetrofitClient.fixImageUrl(update.photoUrls[page])
+                            val originalUrl = update.photoUrls[page]
+                            val fixedUrl = RetrofitClient.fixImageUrl(originalUrl)
                             Log.d("UpdateCard", "Loading update image from URL: $fixedUrl")
 
-                            SubcomposeAsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
+                            AsyncImage(
+                                model = ImageRequest.Builder(context)
                                     .data(fixedUrl)
-                                    .crossfade(true)
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .memoryCachePolicy(CachePolicy.ENABLED)
                                     .build(),
                                 contentDescription = "Update Photo ${page + 1}",
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .clip(RoundedCornerShape(12.dp)),
                                 contentScale = ContentScale.Fit,
-                                loading = {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.align(Alignment.Center)
-                                    )
-                                },
-                                error = {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .background(Color.LightGray),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Column(
-                                            horizontalAlignment = Alignment.CenterHorizontally
-                                        ) {
-                                            Text("Image not available")
-                                            Text(
-                                                text = fixedUrl,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                fontSize = 8.sp,
-                                                maxLines = 2,
-                                                overflow = TextOverflow.Ellipsis
-                                            )
-                                        }
-                                    }
-                                }
                             )
+
+                            // Fallback text if image fails to load
+                            if (originalUrl.isNullOrEmpty()) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(Color.LightGray)
+                                        .padding(16.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        "Image not available",
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = fixedUrl,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontSize = 8.sp,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
                         }
                     }
 
