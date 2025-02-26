@@ -73,7 +73,7 @@ fun NotificationDetailsScreen(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "Status: In Progress",
+                        text = "Issue Updated",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         fontWeight = FontWeight.Bold
