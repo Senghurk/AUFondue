@@ -3,8 +3,10 @@ package edu.au.aufondue.screens.map
 import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -25,6 +27,7 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
@@ -34,14 +37,16 @@ fun MapScreen(
     val context = LocalContext.current
     val issues by viewModel.issues.collectAsState()
     val selectedIssue by viewModel.selectedIssue.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
 
     // Initialize FusedLocationProviderClient
     val fusedLocationClient = remember {
         LocationServices.getFusedLocationProviderClient(context)
     }
 
-    // Default to Kasetsart University location
-    val defaultLocation = LatLng(13.8505, 100.5678)
+    // Default to Assumption University location
+    val defaultLocation = LatLng(13.8505, 100.5678) // Assumption University coordinates
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(defaultLocation, 16f)
     }
@@ -185,6 +190,10 @@ fun MapScreen(
                                 text = "Category: ${issue.category}",
                                 style = MaterialTheme.typography.bodySmall
                             )
+                            Text(
+                                text = "Status: ${issue.status}",
+                                style = MaterialTheme.typography.bodySmall
+                            )
                         }
                         Button(
                             onClick = { viewModel.clearSelectedIssue() },
@@ -199,12 +208,50 @@ fun MapScreen(
             }
 
             // Loading indicator
-            if (viewModel.isLoading.collectAsState().value) {
+            if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(16.dp)
                 )
+            }
+
+            // Error display
+            if (error != null) {
+                Card(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Error",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        Text(
+                            text = error ?: "Unknown error",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                        Button(
+                            onClick = { viewModel.loadIssues() },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.onErrorContainer,
+                                contentColor = MaterialTheme.colorScheme.errorContainer
+                            )
+                        ) {
+                            Text("Retry")
+                        }
+                    }
+                }
             }
         }
     }
