@@ -12,7 +12,6 @@ import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
-import java.net.URLEncoder
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -73,6 +72,10 @@ object RetrofitClient {
 
     // Extract domain for image URL fixing
     val DOMAIN = BASE_URL.removeSuffix("/")
+
+    // SAS Token for Azure Blob Storage
+    private const val SAS_TOKEN = "sp=racwl&st=2025-02-25T05:25:29Z&se=2025-05-01T13:25:29Z&sv=2022-11-02&sr=c&sig=tLy7KN14KKIju3BkWj3j9WxhTRlFYJZEh404Wfp9lTQ%3D"
+    private const val STORAGE_URL = "https://aufondueblob.blob.core.windows.net/aufondue/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -137,7 +140,7 @@ object RetrofitClient {
     }
 
     /**
-     * Fixes image URL issues by ensuring they have the proper domain
+     * Fixes image URL issues by ensuring they have the proper domain and SAS token
      */
     fun fixImageUrl(url: String): String {
         Log.d(TAG, "Original image URL: $url")
@@ -146,14 +149,14 @@ object RetrofitClient {
 
         // Azure Blob Storage URL handling
         if (url.contains("blob.core.windows.net")) {
-            val sasUrl = "https://aufondueblob.blob.core.windows.net/aufondue?sp=rcw&st=2025-02-27T04:49:38Z&se=2025-05-01T12:49:38Z&sv=2022-11-02&sr=c&sig=GE16fOlj5QdBZ3AQ4n7VA4sx0NOmTRGcHXYtszPL5ko%3D"
+            // Extract the filename from the full URL path
+            val fileName = url.substringAfterLast("/")
 
-            // Remove container name from original URL to append SAS token
-            val cleanUrl = url.replace("https://aufondueblob.blob.core.windows.net/aufondue/", "")
-            val finalUrl = "$sasUrl&se=${URLEncoder.encode(cleanUrl, "UTF-8")}"
+            // Create direct URL to the blob with SAS token
+            val directBlobUrl = "$STORAGE_URL$fileName?$SAS_TOKEN"
 
-            Log.d(TAG, "Generated image URL with SAS: $finalUrl")
-            return finalUrl
+            Log.d(TAG, "Generated direct blob URL: $directBlobUrl")
+            return directBlobUrl
         }
 
         // Existing URL handling

@@ -32,6 +32,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
+import coil3.request.crossfade
 import edu.au.aufondue.api.RetrofitClient
 import edu.au.aufondue.api.models.UpdateResponse
 
@@ -228,11 +229,11 @@ fun NotificationDetailsScreen(
                             }
                         }
 
-                        // Update History Section
+                        // Update From OM Section
                         if (state.updates.isNotEmpty()) {
                             item {
                                 Text(
-                                    text = "Update History",
+                                    text = "Update From OM",
                                     style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.padding(vertical = 8.dp)
@@ -290,18 +291,66 @@ fun IssuePhotosCard(photos: List<String>) {
                         val fixedUrl = RetrofitClient.fixImageUrl(originalUrl)
                         Log.d("IssuePhotosCard", "Loading image from URL: $fixedUrl")
 
-                        AsyncImage(
-                            model = ImageRequest.Builder(context)
-                                .data(fixedUrl)
-                                .diskCachePolicy(CachePolicy.ENABLED)
-                                .memoryCachePolicy(CachePolicy.ENABLED)
-                                .build(),
-                            contentDescription = "Report Photo ${page + 1}",
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(RoundedCornerShape(12.dp)),
-                            contentScale = ContentScale.Fit,
-                        )
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(context)
+                                    .data(fixedUrl)
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .memoryCachePolicy(CachePolicy.ENABLED)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = "Report Photo ${page + 1}",
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(12.dp)),
+                                contentScale = ContentScale.Fit,
+                            )
+
+                            // Loading indicator inside a 'remember mutableStateOf' to conditionally show
+                            var isLoading by remember { mutableStateOf(true) }
+                            var isError by remember { mutableStateOf(false) }
+
+                            LaunchedEffect(fixedUrl) {
+                                isLoading = true
+                                isError = false
+                            }
+
+                            if (isLoading) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(48.dp),
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+
+                            if (isError) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(Color.LightGray)
+                                        .padding(16.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        "Error loading image",
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = "URL: $fixedUrl",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontSize = 8.sp,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        }
 
                         // Fallback text if image fails to load
                         if (originalUrl.isNullOrEmpty()) {
@@ -316,14 +365,6 @@ fun IssuePhotosCard(photos: List<String>) {
                                 Text(
                                     "Image not available",
                                     style = MaterialTheme.typography.bodyLarge
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = fixedUrl,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontSize = 8.sp,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
@@ -443,18 +484,66 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                             val fixedUrl = RetrofitClient.fixImageUrl(originalUrl)
                             Log.d("UpdateCard", "Loading update image from URL: $fixedUrl")
 
-                            AsyncImage(
-                                model = ImageRequest.Builder(context)
-                                    .data(fixedUrl)
-                                    .diskCachePolicy(CachePolicy.ENABLED)
-                                    .memoryCachePolicy(CachePolicy.ENABLED)
-                                    .build(),
-                                contentDescription = "Update Photo ${page + 1}",
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(RoundedCornerShape(12.dp)),
-                                contentScale = ContentScale.Fit,
-                            )
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(context)
+                                        .data(fixedUrl)
+                                        .diskCachePolicy(CachePolicy.ENABLED)
+                                        .memoryCachePolicy(CachePolicy.ENABLED)
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = "Update Photo ${page + 1}",
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(RoundedCornerShape(12.dp)),
+                                    contentScale = ContentScale.Fit,
+                                )
+
+                                // Loading indicator inside a 'remember mutableStateOf' to conditionally show
+                                var isLoading by remember { mutableStateOf(true) }
+                                var isError by remember { mutableStateOf(false) }
+
+                                LaunchedEffect(fixedUrl) {
+                                    isLoading = true
+                                    isError = false
+                                }
+
+                                if (isLoading) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(48.dp),
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+
+                                if (isError) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(Color.LightGray)
+                                            .padding(16.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Text(
+                                            "Error loading image",
+                                            style = MaterialTheme.typography.bodyLarge
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = "URL: $fixedUrl",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontSize = 8.sp,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
+                            }
 
                             // Fallback text if image fails to load
                             if (originalUrl.isNullOrEmpty()) {
@@ -469,14 +558,6 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                                     Text(
                                         "Image not available",
                                         style = MaterialTheme.typography.bodyLarge
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = fixedUrl,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        fontSize = 8.sp,
-                                        maxLines = 2,
-                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
                             }
