@@ -13,6 +13,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -31,10 +32,25 @@ class LocalDateTimeAdapter {
         return try {
             // First try to parse as ISO datetime with timezone
             try {
-                ZonedDateTime.parse(value).toLocalDateTime()
+                val zonedDateTime = ZonedDateTime.parse(value)
+                Log.d("LocalDateTimeAdapter", "Parsed ZonedDateTime: $zonedDateTime")
+                // Convert to device's timezone
+                zonedDateTime.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime()
             } catch (e: DateTimeParseException) {
                 // If that fails, try parsing as local datetime
-                LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                try {
+                    val localDateTime = LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                    Log.d("LocalDateTimeAdapter", "Parsed LocalDateTime: $localDateTime")
+                    localDateTime
+                } catch (e2: DateTimeParseException) {
+                    // Try one more format that might be common from servers
+                    try {
+                        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                        LocalDateTime.parse(value, formatter)
+                    } catch (e3: Exception) {
+                        throw e3 // Re-throw if all parsing attempts fail
+                    }
+                }
             }
         } catch (e: Exception) {
             Log.e("LocalDateTimeAdapter", "Error parsing date: $value", e)

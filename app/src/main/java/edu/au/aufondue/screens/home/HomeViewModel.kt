@@ -143,7 +143,11 @@ class HomeViewModel : ViewModel() {
             val issues = issuesResponse.data ?: emptyList()
             Log.d(TAG, "Loaded ${issues.size} submitted reports")
 
-            val reportItems = issues.map { it.toReportItem() }
+            val reportItems = issues.map {
+                // Log the date-time for debugging
+                Log.d(TAG, "Report ${it.id} created at: ${it.createdAt}")
+                it.toReportItem()
+            }
 
             _state.value = _state.value.copy(
                 isLoading = false,
@@ -221,7 +225,7 @@ class HomeViewModel : ViewModel() {
         try {
             // Convert server's LocalDateTime to the device's current timezone
             val deviceZone = ZoneId.systemDefault()
-            val zdt = dateTime.atZone(ZoneId.systemDefault())
+            val zdt = dateTime.atZone(deviceZone)
             val now = ZonedDateTime.now(deviceZone)
 
             // Debug log the times
@@ -234,6 +238,11 @@ class HomeViewModel : ViewModel() {
             val daysAgo = ChronoUnit.DAYS.between(zdt, now)
 
             Log.d(TAG, "Time differences - seconds: $secondsAgo, minutes: $minutesAgo, hours: $hoursAgo, days: $daysAgo")
+
+            // Handle potential negative values (if server time is ahead of device time)
+            if (secondsAgo < 0) {
+                return "Just now"
+            }
 
             return when {
                 secondsAgo < 60 -> "Just now"
