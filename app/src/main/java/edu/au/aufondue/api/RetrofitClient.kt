@@ -12,6 +12,7 @@ import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import java.net.URLEncoder
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -141,28 +142,25 @@ object RetrofitClient {
     fun fixImageUrl(url: String): String {
         Log.d(TAG, "Original image URL: $url")
 
-        if (url.isEmpty()) {
-            return ""
-        }
+        if (url.isEmpty()) return ""
 
-        // Fix Azure Blob Storage URLs
+        // Azure Blob Storage URL handling
         if (url.contains("blob.core.windows.net")) {
-            val sanitizedUrl = url.replace(" ", "%20").trim()
-            Log.d(TAG, "Sanitized Azure blob URL: $sanitizedUrl")
-            return sanitizedUrl
+            val sasUrl = "https://aufondueblob.blob.core.windows.net/aufondue?sp=rcw&st=2025-02-27T04:49:38Z&se=2025-05-01T12:49:38Z&sv=2022-11-02&sr=c&sig=GE16fOlj5QdBZ3AQ4n7VA4sx0NOmTRGcHXYtszPL5ko%3D"
+
+            // Remove container name from original URL to append SAS token
+            val cleanUrl = url.replace("https://aufondueblob.blob.core.windows.net/aufondue/", "")
+            val finalUrl = "$sasUrl&se=${URLEncoder.encode(cleanUrl, "UTF-8")}"
+
+            Log.d(TAG, "Generated image URL with SAS: $finalUrl")
+            return finalUrl
         }
 
-        // If the URL already has http/https, it's complete
+        // Existing URL handling
         if (url.startsWith("http://") || url.startsWith("https://")) {
             return url
         }
 
-        // If it starts with a slash, append to domain
-        if (url.startsWith("/")) {
-            return "$DOMAIN$url"
-        }
-
-        // Otherwise, assume it's a relative path
         return "$DOMAIN/$url"
     }
 }
