@@ -63,45 +63,7 @@ class NotificationDetailsViewModel : ViewModel() {
                 Log.d(TAG, "Successfully loaded issue: ${issue.id}")
 
                 // Fetch issue updates
-                try {
-                    val updatesResponse = RetrofitClient.apiService.getIssueUpdates(issueId)
-
-                    if (!updatesResponse.isSuccessful) {
-                        Log.e(TAG, "Failed to fetch updates: ${updatesResponse.code()}")
-                        // Continue without updates
-                        _state.update {
-                            it.copy(
-                                isLoading = false,
-                                issue = issue,
-                                updates = emptyList()
-                            )
-                        }
-                        return@launch
-                    }
-
-                    val updates = updatesResponse.body() ?: emptyList()
-                    Log.d(TAG, "Loaded ${updates.size} updates")
-
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            issue = issue,
-                            updates = updates.sortedByDescending { update -> update.updateTime }
-                        )
-                    }
-                } catch (e: Exception) {
-                    // If updates fail, we still want to show the issue
-                    Log.e(TAG, "Error loading updates, but issue was loaded", e)
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            issue = issue,
-                            updates = emptyList(),
-                            error = "Could not load updates: ${e.message}"
-                        )
-                    }
-                }
-
+                fetchIssueUpdates(issueId, issue)
             } catch (e: Exception) {
                 Log.e(TAG, "Error loading issue details", e)
                 _state.update {
@@ -110,6 +72,47 @@ class NotificationDetailsViewModel : ViewModel() {
                         error = e.message ?: "An unknown error occurred"
                     )
                 }
+            }
+        }
+    }
+
+    private suspend fun fetchIssueUpdates(issueId: Long, issue: IssueResponse) {
+        try {
+            val updatesResponse = RetrofitClient.apiService.getIssueUpdates(issueId)
+
+            if (!updatesResponse.isSuccessful) {
+                Log.e(TAG, "Failed to fetch updates: ${updatesResponse.code()}")
+                // Continue without updates
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        issue = issue,
+                        updates = emptyList()
+                    )
+                }
+                return
+            }
+
+            val updates = updatesResponse.body() ?: emptyList()
+            Log.d(TAG, "Loaded ${updates.size} updates")
+
+            _state.update {
+                it.copy(
+                    isLoading = false,
+                    issue = issue,
+                    updates = updates.sortedByDescending { update -> update.updateTime }
+                )
+            }
+        } catch (e: Exception) {
+            // If updates fail, we still want to show the issue
+            Log.e(TAG, "Error loading updates, but issue was loaded", e)
+            _state.update {
+                it.copy(
+                    isLoading = false,
+                    issue = issue,
+                    updates = emptyList(),
+                    error = "Could not load updates: ${e.message}"
+                )
             }
         }
     }
