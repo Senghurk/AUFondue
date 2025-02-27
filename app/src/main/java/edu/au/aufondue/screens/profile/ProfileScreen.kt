@@ -2,6 +2,7 @@
 package edu.au.aufondue.screens.profile
 
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
@@ -9,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -30,6 +32,13 @@ fun ProfileScreen(
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
 
+    // Initialize avatar on first launch
+    LaunchedEffect(Unit) {
+        if (state.avatarUrl.isEmpty()) {
+            viewModel.updateAvatar()
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -41,25 +50,48 @@ fun ProfileScreen(
             modifier = Modifier
                 .size(120.dp)
                 .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
-            SubcomposeAsyncImage(
-                model = ImageRequest.Builder(context)
-                    .data(state.avatarUrl)
-                    .transformations(listOf(CircleCropTransformation()))
-                    .crossfade(true)
-                    .build(),
-                contentDescription = "Profile Avatar",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-                loading = {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                },
-                error = {
-                    Log.e("ProfileScreen", "Error loading image: ${it.result}")
-                }
-            )
+            if (state.avatarUrl.isNotEmpty()) {
+                SubcomposeAsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(state.avatarUrl)
+                        .transformations(listOf(CircleCropTransformation()))
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Profile Avatar",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    loading = {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    },
+                    error = {
+                        Log.e("ProfileScreen", "Error loading image: ${it.result}")
+                        // Show first letter of name as fallback
+                        if (state.displayName.isNotEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(MaterialTheme.colorScheme.primary),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = state.displayName.first().toString(),
+                                    style = MaterialTheme.typography.headlineLarge,
+                                    color = Color.White
+                                )
+                            }
+                        }
+                    }
+                )
+            } else {
+                // Show loading or placeholder
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
