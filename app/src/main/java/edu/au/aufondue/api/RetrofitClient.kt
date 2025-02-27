@@ -7,6 +7,7 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.ToJson
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
+import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -45,6 +46,8 @@ object RetrofitClient {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
+    // Update these parts in your RetrofitClient.kt
+
     private val okHttpClient by lazy {
         createOkHttpClient()
     }
@@ -56,19 +59,35 @@ object RetrofitClient {
                 val request = chain.request()
                 Log.d(TAG, "Making request: ${request.method} ${request.url}")
 
+                // Add detailed request logging
+                if (request.body != null) {
+                    Log.d(TAG, "Request has body")
+                }
+
                 try {
                     val response = chain.proceed(request)
                     Log.d(TAG, "Got response: ${response.code} for ${request.url}")
+
+                    // Log response details for debugging
+                    if (!response.isSuccessful) {
+                        val errorBody = response.body?.string()
+                        Log.e(TAG, "Error response: $errorBody")
+                        // Create a new response with the consumed body
+                        return@addInterceptor response.newBuilder()
+                            .body(ResponseBody.create(response.body?.contentType(), errorBody ?: ""))
+                            .build()
+                    }
+
                     response
                 } catch (e: Exception) {
                     Log.e(TAG, "Error during API request to ${request.url}", e)
                     throw e
                 }
             }
-            // Add timeouts
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
+            // Increase timeouts for large file uploads
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
             .build()
     }
 

@@ -227,9 +227,10 @@ class ReportViewModel : ViewModel() {
                                 photoBody
                             )
                             photoParts.add(part)
-                        }
+                            Log.d("ReportViewModel", "Added photo part: ${tempFile.absolutePath}")
+                        } ?: Log.e("ReportViewModel", "Failed to create temp file from URI: $uri")
                     } catch (e: Exception) {
-                        Log.e("ReportViewModel", "Error processing photo: ${e.message}")
+                        Log.e("ReportViewModel", "Error processing photo: ${e.message}", e)
                     }
                 }
 
@@ -237,16 +238,36 @@ class ReportViewModel : ViewModel() {
                     throw IllegalStateException("Failed to process photos")
                 }
 
-                Log.d("ReportViewModel", "Submitting report with user info - email=${issueRequest.userEmail}, name=${issueRequest.userName}")
+                Log.d("ReportViewModel", "Submitting report with ${photoParts.size} photos")
+                Log.d("ReportViewModel", "User info - email=${issueRequest.userEmail}, name=${issueRequest.userName}")
 
-                val response = RetrofitClient.apiService.createIssue(issueRequestBody, photoParts)
+                try {
+                    val response = RetrofitClient.apiService.createIssue(issueRequestBody, photoParts)
+                    Log.d("ReportViewModel", "Response code: ${response.code()}")
 
-                if (response.isSuccessful && response.body()?.success == true) {
+                    if (!response.isSuccessful) {
+                        val errorBody = response.errorBody()?.string() ?: "Unknown error"
+                        Log.e("ReportViewModel", "API Error: ${response.code()} - $errorBody")
+                        throw Exception("API returned error code ${response.code()}: $errorBody")
+                    }
+
+                    val responseBody = response.body()
+                    if (responseBody == null) {
+                        Log.e("ReportViewModel", "API returned null response body")
+                        throw Exception("Server returned empty response")
+                    }
+
+                    if (!responseBody.success) {
+                        Log.e("ReportViewModel", "API returned error: ${responseBody.message}")
+                        throw Exception("API error: ${responseBody.message}")
+                    }
+
                     Log.d("ReportViewModel", "Report submitted successfully")
                     _state.update { ReportState() }
                     onSuccess()
-                } else {
-                    throw Exception(response.body()?.message ?: "Failed to submit report")
+                } catch (e: Exception) {
+                    Log.e("ReportViewModel", "API call failed", e)
+                    throw Exception("Failed to submit report: ${e.message}")
                 }
             } catch (e: Exception) {
                 Log.e("ReportViewModel", "Error submitting report", e)
@@ -254,9 +275,18 @@ class ReportViewModel : ViewModel() {
             } finally {
                 _state.update { it.copy(isLoading = false) }
 
+                // Clean up temporary files
                 context?.cacheDir?.listFiles()?.forEach { file ->
                     if (file.name.startsWith("upload_")) {
-                        file.delete()
+                        try {
+                            if (file.delete()) {
+                                Log.d("ReportViewModel", "Deleted temp file: ${file.absolutePath}")
+                            } else {
+                                Log.w("ReportViewModel", "Failed to delete temp file: ${file.absolutePath}")
+                            }
+                        } catch (e: Exception) {
+                            Log.w("ReportViewModel", "Error deleting temp file: ${e.message}")
+                        }
                     }
                 }
             }
