@@ -2,6 +2,8 @@ package edu.au.aufondue.auth
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.pm.PackageManager
+import android.util.Base64
 import android.util.Log
 import com.microsoft.identity.client.*
 import com.microsoft.identity.client.exception.MsalException
@@ -11,27 +13,76 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.security.MessageDigest
 
 class AuthManager private constructor(private val activity: Activity) {
     private var mSingleAccountApp: ISingleAccountPublicClientApplication? = null
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
+    private var initializationAttempts = 0
 
     init {
-        Log.d(TAG, "Initializing MSAL PublicClientApplication...")
-        PublicClientApplication.createSingleAccountPublicClientApplication(
-            activity.applicationContext,
-            R.raw.auth_config,
-            object : IPublicClientApplication.ISingleAccountApplicationCreatedListener {
-                override fun onCreated(application: ISingleAccountPublicClientApplication) {
-                    mSingleAccountApp = application
-                    Log.d(TAG, "MSAL application created successfully")
-                }
+        initializeMSAL()
+    }
 
-                override fun onError(exception: MsalException) {
-                    Log.e(TAG, "Failed to create MSAL application", exception)
+    private fun initializeMSAL() {
+        Log.d(TAG, "Initializing MSAL PublicClientApplication... Attempt #${++initializationAttempts}")
+
+        // Log the signing certificate info for debugging
+        logSigningInfo()
+
+        try {
+            // Try to create the MSAL application
+            PublicClientApplication.createSingleAccountPublicClientApplication(
+                activity.applicationContext,
+                R.raw.auth_config,
+                object : IPublicClientApplication.ISingleAccountApplicationCreatedListener {
+                    override fun onCreated(application: ISingleAccountPublicClientApplication) {
+                        mSingleAccountApp = application
+                        Log.d(TAG, "MSAL application created successfully")
+                    }
+
+                    override fun onError(exception: MsalException) {
+                        Log.e(TAG, "Failed to create MSAL application: ${exception.message}", exception)
+                        Log.e(TAG, "Error code: ${exception.errorCode}")
+
+                        // Retry initialization if needed
+                        if (initializationAttempts < 3) {
+                            Log.d(TAG, "Retrying MSAL initialization...")
+                            activity.window.decorView.postDelayed({ initializeMSAL() }, 1000)
+                        }
+                    }
+                }
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception during MSAL initialization: ${e.message}", e)
+        }
+    }
+
+    private fun logSigningInfo() {
+        try {
+            val packageInfo = activity.packageManager.getPackageInfo(
+                activity.packageName,
+                PackageManager.GET_SIGNATURES
+            )
+
+            packageInfo.signatures?.forEach { signature ->
+                val signatureBytes = signature.toByteArray()
+                val md = MessageDigest.getInstance("SHA-1")
+                val digest = md.digest(signatureBytes)
+                val base64Digest = Base64.encodeToString(digest, Base64.NO_WRAP)
+
+                Log.d(TAG, "App signature (SHA-1): $base64Digest")
+
+                // Check which signature is being used
+                when (base64Digest) {
+                    "2KKMkMA2KLZxAatK0cnro3sW9dU=" -> Log.d(TAG, "Using debug signature")
+                    "wleWqrr1L4P/uwTggUjaCRn1tPo=" -> Log.d(TAG, "Using release signature")
+                    else -> Log.d(TAG, "Using unknown signature")
                 }
             }
-        )
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting signing info", e)
+        }
     }
 
     private suspend fun createOrVerifyUser(email: String, username: String) {
@@ -63,7 +114,26 @@ class AuthManager private constructor(private val activity: Activity) {
     fun signIn(onSuccess: (String) -> Unit, onError: (Exception) -> Unit) {
         if (mSingleAccountApp == null) {
             Log.e(TAG, "MSAL client not initialized")
-            onError(Exception("MSAL client not initialized"))
+
+            // Check if we've already tried multiple times
+            if (initializationAttempts >= 3) {
+                onError(Exception("Authentication service initialization failed. Please restart the app."))
+                return
+            }
+
+            // Retry initialization
+            initializeMSAL()
+
+            // Wait and check again
+            activity.window.decorView.postDelayed({
+                if (mSingleAccountApp != null) {
+                    Log.d(TAG, "MSAL client initialized after delay, proceeding with sign-in")
+                    proceedWithSignIn(onSuccess, onError)
+                } else {
+                    Log.e(TAG, "MSAL client still not initialized after delay")
+                    onError(Exception("Authentication service initialization failed. Please restart the app."))
+                }
+            }, 2000) // 2 second delay
             return
         }
 
@@ -105,39 +175,45 @@ class AuthManager private constructor(private val activity: Activity) {
     }
 
     private fun proceedWithSignIn(onSuccess: (String) -> Unit, onError: (Exception) -> Unit) {
-        val parameters = AcquireTokenParameters.Builder()
-            .startAuthorizationFromActivity(activity)
-            .withScopes(SCOPES.toList())
-            .withPrompt(Prompt.SELECT_ACCOUNT) // Ensures user selects an account
-            .withCallback(object : AuthenticationCallback {
-                override fun onSuccess(authenticationResult: IAuthenticationResult) {
-                    Log.d(TAG, "Sign-in successful with account: ${authenticationResult.account.username}")
-                    coroutineScope.launch {
-                        try {
-                            val email = authenticationResult.account.username
-                            val name = email.substringBefore("@")
+        try {
+            val parameters = AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(activity)
+                .withScopes(SCOPES.toList())
+                .withPrompt(Prompt.SELECT_ACCOUNT) // Ensures user selects an account
+                .withCallback(object : AuthenticationCallback {
+                    override fun onSuccess(authenticationResult: IAuthenticationResult) {
+                        Log.d(TAG, "Sign-in successful with account: ${authenticationResult.account.username}")
+                        coroutineScope.launch {
+                            try {
+                                val email = authenticationResult.account.username
+                                val name = email.substringBefore("@")
 
-                            createOrVerifyUser(email, name)
-                            onSuccess(authenticationResult.accessToken)
-                        } catch (e: Exception) {
-                            onError(e)
+                                createOrVerifyUser(email, name)
+                                onSuccess(authenticationResult.accessToken)
+                            } catch (e: Exception) {
+                                onError(e)
+                            }
                         }
                     }
-                }
 
-                override fun onError(exception: MsalException) {
-                    Log.e(TAG, "Sign-in error", exception)
-                    onError(exception)
-                }
+                    override fun onError(exception: MsalException) {
+                        Log.e(TAG, "Sign-in error: ${exception.message}", exception)
+                        Log.e(TAG, "Error code: ${exception.errorCode}")
+                        onError(exception)
+                    }
 
-                override fun onCancel() {
-                    Log.d(TAG, "Sign-in canceled")
-                    onError(Exception("Sign-in canceled"))
-                }
-            })
-            .build()
+                    override fun onCancel() {
+                        Log.d(TAG, "Sign-in canceled")
+                        onError(Exception("Sign-in canceled"))
+                    }
+                })
+                .build()
 
-        mSingleAccountApp?.acquireToken(parameters)
+            mSingleAccountApp?.acquireToken(parameters)
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception during acquireToken", e)
+            onError(e)
+        }
     }
 
     fun signOut(onComplete: () -> Unit) {
