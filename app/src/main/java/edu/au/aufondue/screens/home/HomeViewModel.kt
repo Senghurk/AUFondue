@@ -16,7 +16,6 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
@@ -223,23 +222,18 @@ class HomeViewModel : ViewModel() {
     @RequiresApi(Build.VERSION_CODES.O)
     private fun getTimeAgo(dateTime: LocalDateTime): String {
         try {
-            // Convert server's LocalDateTime to the device's current timezone
-            val deviceZone = ZoneId.systemDefault()
-            val zdt = dateTime.atZone(deviceZone)
-            val now = ZonedDateTime.now(deviceZone)
+            // Convert both times to Instant (timestamp) for accurate comparison
+            val dateTimeInstant = dateTime.atZone(ZoneId.systemDefault()).toInstant()
+            val nowInstant = Instant.now()
 
-            // Debug log the times
-            Log.d(TAG, "Issue datetime: $dateTime, Current time: ${LocalDateTime.now()}")
+            // Calculate time differences using timestamps
+            val secondsAgo = ChronoUnit.SECONDS.between(dateTimeInstant, nowInstant)
+            val minutesAgo = ChronoUnit.MINUTES.between(dateTimeInstant, nowInstant)
+            val hoursAgo = ChronoUnit.HOURS.between(dateTimeInstant, nowInstant)
+            val daysAgo = ChronoUnit.DAYS.between(dateTimeInstant, nowInstant)
 
-            // Calculate time differences
-            val secondsAgo = ChronoUnit.SECONDS.between(zdt, now)
-            val minutesAgo = ChronoUnit.MINUTES.between(zdt, now)
-            val hoursAgo = ChronoUnit.HOURS.between(zdt, now)
-            val daysAgo = ChronoUnit.DAYS.between(zdt, now)
+            Log.d(TAG, "Time differences (using Instant) - seconds: $secondsAgo, minutes: $minutesAgo, hours: $hoursAgo, days: $daysAgo")
 
-            Log.d(TAG, "Time differences - seconds: $secondsAgo, minutes: $minutesAgo, hours: $hoursAgo, days: $daysAgo")
-
-            // Handle potential negative values (if server time is ahead of device time)
             if (secondsAgo < 0) {
                 return "Just now"
             }
@@ -250,7 +244,6 @@ class HomeViewModel : ViewModel() {
                 hoursAgo < 24 -> "$hoursAgo hour${if (hoursAgo > 1) "s" else ""} ago"
                 daysAgo < 30 -> "$daysAgo day${if (daysAgo > 1) "s" else ""} ago"
                 else -> {
-                    // Format as exact date if it's older than a month
                     val formatter = DateTimeFormatter.ofPattern("MMM d, yyyy")
                     dateTime.format(formatter)
                 }
