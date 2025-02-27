@@ -1,14 +1,23 @@
 package edu.au.aufondue.screens.home
 
+import android.content.Context
+import android.os.Build
+import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import edu.au.aufondue.api.RetrofitClient
 import edu.au.aufondue.api.models.IssueResponse
+import edu.au.aufondue.auth.UserPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
 data class HomeScreenState(
@@ -30,55 +39,168 @@ class HomeViewModel : ViewModel() {
     private val _state = MutableStateFlow(HomeScreenState())
     val state: StateFlow<HomeScreenState> = _state.asStateFlow()
 
-    // Temporary mock user ID until Azure auth is implemented
-    private val mockUserId = 1L
+    private val TAG = "HomeViewModel"
 
-    init {
-        loadReports()
-    }
-
-    fun loadReports() {
+    // Load current user reports based on tab selection
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun loadReports(context: Context, isSubmittedTab: Boolean) {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null)
 
             try {
-                // Load submitted reports
-                val submittedResponse = RetrofitClient.apiService.getUserSubmittedIssues(
-                    userId = mockUserId,
-                    page = 0,
-                    size = 10
-                )
+                // Get the current user's information
+                val prefs = UserPreferences.getInstance(context)
+                val userEmail = prefs.getUserEmail()
+                val username = prefs.getUsername()
 
-                // Load tracked reports
-                val trackedResponse = RetrofitClient.apiService.getAllIssuesTracking(
-                    page = 0,
-                    size = 10
-                )
-
-                if (submittedResponse.isSuccessful && trackedResponse.isSuccessful) {
-                    val submittedReports = submittedResponse.body()?.data?.map { it.toReportItem() } ?: emptyList()
-                    val trackedReports = trackedResponse.body()?.data?.map { it.toReportItem() } ?: emptyList()
-
+                if (userEmail == null || username == null) {
+                    // User isn't logged in
                     _state.value = _state.value.copy(
                         isLoading = false,
-                        submittedReports = submittedReports,
-                        trackedReports = trackedReports
+                        error = "User not logged in, please log in first"
                     )
+                    return@launch
+                }
+
+                // Get user ID for API calls
+                val userId = getUserId(userEmail, username)
+
+                if (userId == null) {
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        error = "Could not retrieve user information"
+                    )
+                    return@launch
+                }
+
+                Log.d(TAG, "User ID: $userId, loading ${if (isSubmittedTab) "submitted" else "tracked"} reports")
+
+                if (isSubmittedTab) {
+                    // Load only reports submitted by this user
+                    loadSubmittedReports(userId)
                 } else {
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        error = "Failed to load reports"
-                    )
+                    // Load all reports for tracking
+                    loadAllReports()
                 }
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     isLoading = false,
                     error = e.message ?: "An unknown error occurred"
                 )
+                Log.e(TAG, "Error loading reports", e)
             }
         }
     }
 
+    private suspend fun getUserId(email: String, username: String): Long? {
+        try {
+            // Create or get user to ensure we have the ID
+            val response = RetrofitClient.apiService.createOrGetUser(username, email)
+
+            if (!response.isSuccessful) {
+                Log.e(TAG, "API error: ${response.code()}")
+                return null
+            }
+
+            val userResponse = response.body()
+            if (userResponse?.success != true || userResponse.data == null) {
+                Log.e(TAG, "API error: ${userResponse?.message}")
+                return null
+            }
+
+            Log.d(TAG, "Retrieved user ID: ${userResponse.data.id}")
+            return userResponse.data.id
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting user ID", e)
+            return null
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private suspend fun loadSubmittedReports(userId: Long) {
+        try {
+            val response = RetrofitClient.apiService.getUserSubmittedIssues(userId)
+
+            if (!response.isSuccessful) {
+                Log.e(TAG, "Failed to load submitted reports: ${response.code()}")
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = "Failed to load your reports"
+                )
+                return
+            }
+
+            val issuesResponse = response.body()
+            if (issuesResponse?.success != true) {
+                Log.e(TAG, "API error: ${issuesResponse?.message}")
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = issuesResponse?.message ?: "Failed to load reports"
+                )
+                return
+            }
+
+            val issues = issuesResponse.data ?: emptyList()
+            Log.d(TAG, "Loaded ${issues.size} submitted reports")
+
+            val reportItems = issues.map { it.toReportItem() }
+
+            _state.value = _state.value.copy(
+                isLoading = false,
+                submittedReports = reportItems
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Error loading submitted reports", e)
+            _state.value = _state.value.copy(
+                isLoading = false,
+                error = "Error: ${e.message}"
+            )
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private suspend fun loadAllReports() {
+        try {
+            val response = RetrofitClient.apiService.getAllIssuesTracking()
+
+            if (!response.isSuccessful) {
+                Log.e(TAG, "Failed to load tracked reports: ${response.code()}")
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = "Failed to load tracked reports"
+                )
+                return
+            }
+
+            val issuesResponse = response.body()
+            if (issuesResponse?.success != true) {
+                Log.e(TAG, "API error: ${issuesResponse?.message}")
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = issuesResponse?.message ?: "Failed to load tracked reports"
+                )
+                return
+            }
+
+            val issues = issuesResponse.data ?: emptyList()
+            Log.d(TAG, "Loaded ${issues.size} tracked reports")
+
+            val reportItems = issues.map { it.toReportItem() }
+
+            _state.value = _state.value.copy(
+                isLoading = false,
+                trackedReports = reportItems
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Error loading tracked reports", e)
+            _state.value = _state.value.copy(
+                isLoading = false,
+                error = "Error: ${e.message}"
+            )
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun IssueResponse.toReportItem(): ReportItem {
         val title = when {
             category == "Custom" -> customCategory ?: "Custom Issue"
@@ -94,21 +216,44 @@ class HomeViewModel : ViewModel() {
         )
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun getTimeAgo(dateTime: LocalDateTime): String {
-        val now = LocalDateTime.now()
-        val minutes = ChronoUnit.MINUTES.between(dateTime, now)
-        val hours = ChronoUnit.HOURS.between(dateTime, now)
-        val days = ChronoUnit.DAYS.between(dateTime, now)
+        try {
+            // Convert server's LocalDateTime to the device's current timezone
+            val deviceZone = ZoneId.systemDefault()
+            val zdt = dateTime.atZone(ZoneId.systemDefault())
+            val now = ZonedDateTime.now(deviceZone)
 
-        return when {
-            minutes < 1 -> "Just now"
-            minutes < 60 -> "$minutes min ago"
-            hours < 24 -> "$hours hour${if (hours > 1) "s" else ""} ago"
-            else -> "$days day${if (days > 1) "s" else ""} ago"
+            // Debug log the times
+            Log.d(TAG, "Issue datetime: $dateTime, Current time: ${LocalDateTime.now()}")
+
+            // Calculate time differences
+            val secondsAgo = ChronoUnit.SECONDS.between(zdt, now)
+            val minutesAgo = ChronoUnit.MINUTES.between(zdt, now)
+            val hoursAgo = ChronoUnit.HOURS.between(zdt, now)
+            val daysAgo = ChronoUnit.DAYS.between(zdt, now)
+
+            Log.d(TAG, "Time differences - seconds: $secondsAgo, minutes: $minutesAgo, hours: $hoursAgo, days: $daysAgo")
+
+            return when {
+                secondsAgo < 60 -> "Just now"
+                minutesAgo < 60 -> "$minutesAgo min ago"
+                hoursAgo < 24 -> "$hoursAgo hour${if (hoursAgo > 1) "s" else ""} ago"
+                daysAgo < 30 -> "$daysAgo day${if (daysAgo > 1) "s" else ""} ago"
+                else -> {
+                    // Format as exact date if it's older than a month
+                    val formatter = DateTimeFormatter.ofPattern("MMM d, yyyy")
+                    dateTime.format(formatter)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error calculating time difference", e)
+            return "Unknown time"
         }
     }
 
-    fun refreshData() {
-        loadReports()
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun refreshData(context: Context, isSubmittedTab: Boolean) {
+        loadReports(context, isSubmittedTab)
     }
 }

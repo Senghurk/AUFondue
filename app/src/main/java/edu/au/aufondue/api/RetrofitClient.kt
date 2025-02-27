@@ -1,7 +1,8 @@
 package edu.au.aufondue.api
 
-import android.annotation.SuppressLint
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.ToJson
@@ -12,20 +13,34 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import java.util.concurrent.TimeUnit
 
 class LocalDateTimeAdapter {
-    @SuppressLint("NewApi")
+    @RequiresApi(Build.VERSION_CODES.O)
     @ToJson
     fun toJson(value: LocalDateTime): String {
         return value.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
     }
 
-    @SuppressLint("NewApi")
+    @RequiresApi(Build.VERSION_CODES.O)
     @FromJson
     fun fromJson(value: String): LocalDateTime {
-        return LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+        return try {
+            // First try to parse as ISO datetime with timezone
+            try {
+                ZonedDateTime.parse(value).toLocalDateTime()
+            } catch (e: DateTimeParseException) {
+                // If that fails, try parsing as local datetime
+                LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+            }
+        } catch (e: Exception) {
+            Log.e("LocalDateTimeAdapter", "Error parsing date: $value", e)
+            // Fallback to current time if parsing fails
+            LocalDateTime.now()
+        }
     }
 }
 
@@ -45,8 +60,6 @@ object RetrofitClient {
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
-
-    // Update these parts in your RetrofitClient.kt
 
     private val okHttpClient by lazy {
         createOkHttpClient()

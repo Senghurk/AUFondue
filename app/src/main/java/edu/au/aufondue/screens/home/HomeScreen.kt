@@ -1,12 +1,16 @@
 package edu.au.aufondue.screens.home
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -32,6 +36,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -48,6 +54,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import edu.au.aufondue.R
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -55,8 +62,14 @@ fun HomeScreen(
     navController: NavController,
     viewModel: HomeViewModel = viewModel()
 ) {
+    val context = LocalContext.current
     val state by viewModel.state.collectAsState()
-    var selectedTab by remember { mutableStateOf(0) }
+    var selectedTab by remember { mutableStateOf(0) } // 0 for Submitted, 1 for Tracked
+
+    // Load appropriate reports based on selected tab
+    LaunchedEffect(selectedTab) {
+        viewModel.loadReports(context, selectedTab == 0)
+    }
 
     Scaffold(
         topBar = {
@@ -70,7 +83,7 @@ fun HomeScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.refreshData() }) {
+                    IconButton(onClick = { viewModel.refreshData(context, selectedTab == 0) }) {
                         Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                     }
                 }
@@ -187,57 +200,92 @@ fun HomeScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(state.error!!)
-                        Button(onClick = { viewModel.refreshData() }) {
+                        Button(onClick = { viewModel.refreshData(context, selectedTab == 0) }) {
                             Text("Retry")
                         }
                     }
                 }
             } else {
                 // Content
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    val reports = if (selectedTab == 0)
-                        state.submittedReports
-                    else
-                        state.trackedReports
+                val reports = if (selectedTab == 0)
+                    state.submittedReports
+                else
+                    state.trackedReports
 
-                    items(reports) { report ->
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp)
+                if (reports.isEmpty()) {
+                    // Show empty state
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
+                            Text(
+                                text = if (selectedTab == 0)
+                                    "You haven't submitted any reports yet."
+                                else
+                                    "No reports to track at the moment.",
+                                textAlign = TextAlign.Center
+                            )
+
+                            if (selectedTab == 0) {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Button(onClick = onNavigateToReport) {
+                                    Text("Submit a report")
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(reports) { report ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp)
                             ) {
-                                Text(
-                                    text = report.title,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = report.description,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.padding(top = 4.dp)
-                                )
-                                Row(
+                                Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(top = 8.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                        .padding(16.dp)
                                 ) {
                                     Text(
-                                        text = report.status,
-                                        style = MaterialTheme.typography.bodySmall
+                                        text = report.title,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
                                     )
                                     Text(
-                                        text = report.timeAgo,
-                                        style = MaterialTheme.typography.bodySmall
+                                        text = report.description,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.padding(top = 4.dp)
                                     )
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 8.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            text = report.status,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = when (report.status) {
+                                                "COMPLETED" -> Color(0xFF4CAF50)
+                                                "IN PROGRESS" -> Color(0xFF2196F3)
+                                                else -> Color(0xFFFFA000)
+                                            }
+                                        )
+                                        Text(
+                                            text = report.timeAgo,
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                    }
                                 }
                             }
                         }
