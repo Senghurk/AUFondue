@@ -115,10 +115,10 @@ fun HomeScreen(
                 modifier = Modifier.padding(vertical = 8.dp)
             ) {
                 val categories = listOf(
-                    "Cracked" to R.drawable.ic_category,
-                    "Leaking" to R.drawable.ic_category,
-                    "Flooded" to R.drawable.ic_category,
-                    "Broken" to R.drawable.ic_category
+                    "Cracked" to R.drawable.ic_cracked,
+                    "Leaking" to R.drawable.ic_leaking,
+                    "Flooded" to R.drawable.ic_flooded,
+                    "Broken" to R.drawable.ic_broken
                 )
 
                 items(categories) { (name, icon) ->
