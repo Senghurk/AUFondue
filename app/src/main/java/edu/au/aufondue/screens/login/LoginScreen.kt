@@ -1,6 +1,5 @@
 package edu.au.aufondue.screens.login
 
-import android.app.Activity
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -30,7 +29,7 @@ fun LoginScreen(
 
     // Initialize auth manager
     LaunchedEffect(Unit) {
-        viewModel.initializeAuth(context as Activity)
+        viewModel.initializeAuth(context)
     }
 
     // Handle navigation

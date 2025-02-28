@@ -40,7 +40,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+        <!--
         <activity
             android:name="com.microsoft.identity.client.BrowserTabActivity"
             android:exported="true">
@@ -54,7 +54,7 @@
                     android:scheme="msauth" />
             </intent-filter>
         </activity>
-
+        -->
     </application>
 
 </manifest>

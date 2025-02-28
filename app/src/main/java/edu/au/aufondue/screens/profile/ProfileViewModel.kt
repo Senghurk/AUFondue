@@ -1,15 +1,11 @@
-// ProfileViewModel.kt
 package edu.au.aufondue.screens.profile
 
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.microsoft.identity.client.IPublicClientApplication
-import com.microsoft.identity.client.ISingleAccountPublicClientApplication
-import com.microsoft.identity.client.PublicClientApplication
-import com.microsoft.identity.client.exception.MsalException
-import edu.au.aufondue.R
+import edu.au.aufondue.auth.AuthManager
+import edu.au.aufondue.auth.UserPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,52 +25,35 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     private val _state = MutableStateFlow(ProfileState())
     val state: StateFlow<ProfileState> = _state.asStateFlow()
 
-    private var mSingleAccountApp: ISingleAccountPublicClientApplication? = null
+    private var authManager: AuthManager? = null
 
     init {
-        initializeMSAL()
+        initializeAuth()
     }
 
-    private fun initializeMSAL() {
-        PublicClientApplication.createSingleAccountPublicClientApplication(
-            getApplication(),
-            R.raw.auth_config,
-            object : IPublicClientApplication.ISingleAccountApplicationCreatedListener {
-                override fun onCreated(application: ISingleAccountPublicClientApplication) {
-                    mSingleAccountApp = application
-                    loadUserInfo()
-                }
-
-                override fun onError(exception: MsalException) {
-                    // Handle error
-                }
-            }
-        )
+    private fun initializeAuth() {
+        authManager = AuthManager.getInstance(getApplication())
+        loadUserInfo()
     }
 
     private fun loadUserInfo() {
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    mSingleAccountApp?.getCurrentAccount()?.currentAccount?.let { account ->
-                        // Get display name from claims
-                        val displayName = account.claims?.get("name") as? String
-                            ?: account.claims?.get("given_name") as? String
-                            ?: account.username?.split("@")?.first()
-                            ?: ""
+                    // Get user info from UserPreferences instead of Microsoft account
+                    val prefs = UserPreferences.getInstance(getApplication())
+                    val email = prefs.getUserEmail() ?: ""
+                    val displayName = prefs.getUsername() ?: email.split("@").firstOrNull() ?: ""
 
-                        val email = account.username ?: ""
-
-                        withContext(Dispatchers.Main) {
-                            _state.value = _state.value.copy(
-                                displayName = displayName,
-                                email = email
-                            )
-                        }
+                    withContext(Dispatchers.Main) {
+                        _state.value = _state.value.copy(
+                            displayName = displayName,
+                            email = email
+                        )
                     }
                 }
             } catch (e: Exception) {
-                // Handle error
+                Log.e("ProfileViewModel", "Error loading user info", e)
             }
         }
     }
@@ -105,11 +84,11 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    mSingleAccountApp?.signOut()
+                    authManager?.signOut(onSignOutComplete)
                 }
+            } catch (e: Exception) {
+                Log.e("ProfileViewModel", "Error signing out", e)
                 onSignOutComplete()
-            } catch (e: MsalException) {
-                // Handle sign out error
             }
         }
     }

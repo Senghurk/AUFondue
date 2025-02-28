@@ -1,6 +1,6 @@
 package edu.au.aufondue.screens.login
 
-import android.app.Activity
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import edu.au.aufondue.auth.AuthManager
@@ -20,7 +20,7 @@ class LoginViewModel : ViewModel() {
 
     private var authManager: AuthManager? = null
 
-    fun initializeAuth(activity: Activity) {
+    fun initializeAuth(activity: Context) {
         if (authManager == null) {
             authManager = AuthManager.getInstance(activity)
         }
@@ -32,6 +32,7 @@ class LoginViewModel : ViewModel() {
                 _isLoading.value = true
                 _error.value = null
 
+                // Use the simplified AuthManager that bypasses real authentication
                 authManager?.signIn(
                     onSuccess = { token ->
                         _isLoading.value = false
