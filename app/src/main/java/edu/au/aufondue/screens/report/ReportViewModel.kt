@@ -9,7 +9,6 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import edu.au.aufondue.api.RetrofitClient
 import edu.au.aufondue.api.models.IssueRequest
-import edu.au.aufondue.api.models.LocationData
 import edu.au.aufondue.auth.UserPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,9 +28,7 @@ data class ReportState(
     val category: String = "",
     val customCategory: String = "",
     val selectedPhotos: List<Uri> = emptyList(),
-    val location: LocationData? = null,
     val customLocation: String = "",
-    val isUsingCustomLocation: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null
 )
@@ -78,19 +75,7 @@ class ReportViewModel : ViewModel() {
     }
 
     fun onCustomLocationChange(location: String) {
-        _state.update { it.copy(
-            customLocation = location,
-            isUsingCustomLocation = true,
-            location = null
-        ) }
-    }
-
-    fun toggleLocationInputMethod() {
-        _state.update { it.copy(
-            isUsingCustomLocation = !it.isUsingCustomLocation,
-            customLocation = if (!it.isUsingCustomLocation) "" else it.customLocation,
-            location = if (it.isUsingCustomLocation) null else it.location
-        ) }
+        _state.update { it.copy(customLocation = location) }
     }
 
     fun onPhotoSelected(uri: Uri) {
@@ -101,15 +86,10 @@ class ReportViewModel : ViewModel() {
         }
     }
 
-    fun onLocationSelected(latitude: Double, longitude: Double) {
+    fun onPhotoRemoved(uri: Uri) {
         _state.update { currentState ->
             currentState.copy(
-                location = LocationData(
-                    latitude = latitude,
-                    longitude = longitude
-                ),
-                isUsingCustomLocation = false,
-                customLocation = ""
+                selectedPhotos = currentState.selectedPhotos.filter { it != uri }
             )
         }
     }
@@ -133,13 +113,8 @@ class ReportViewModel : ViewModel() {
                 errors.add("Please enter a custom category")
             currentState.selectedPhotos.isEmpty() ->
                 errors.add("Please attach at least one photo")
-        }
-
-        when {
-            currentState.isUsingCustomLocation && currentState.customLocation.isBlank() ->
-                errors.add("Please enter a location description")
-            !currentState.isUsingCustomLocation && currentState.location == null ->
-                errors.add("Please select a location on the map")
+            currentState.customLocation.isBlank() ->
+                errors.add("Please provide a location description")
         }
 
         if (errors.isNotEmpty()) {
@@ -182,19 +157,10 @@ class ReportViewModel : ViewModel() {
                 currentState.customCategory
             else
                 null,
-            latitude = if (!currentState.isUsingCustomLocation)
-                currentState.location?.latitude
-            else
-                null,
-            longitude = if (!currentState.isUsingCustomLocation)
-                currentState.location?.longitude
-            else
-                null,
-            customLocation = if (currentState.isUsingCustomLocation)
-                currentState.customLocation
-            else
-                null,
-            isUsingCustomLocation = currentState.isUsingCustomLocation,
+            latitude = null, // Always null since we're using custom location only
+            longitude = null, // Always null since we're using custom location only
+            customLocation = currentState.customLocation,
+            isUsingCustomLocation = true, // Always true since we only use custom location
             userEmail = userEmail,
             userName = userName
         )
