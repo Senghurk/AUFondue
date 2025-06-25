@@ -1,13 +1,122 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Previous strings -->
+    <!-- App Info -->
     <string name="app_name">AU Fondue</string>
-    <string name="nav_home">Home</string>
-    <string name="nav_history">History</string>
-    <string name="nav_add">Add</string>
-    <string name="nav_notifications">Notifications</string>
-    <string name="nav_profile">Profile</string>
+    <string name="app_tagline">รายงานและติดตามปัญหาการบำรุงรักษา</string>
 
-    <!-- Login screen strings -->
-    <string name="app_tagline">Report and Track Maintenance Issues</string>
+    <!-- Navigation -->
+    <string name="nav_home">หน้าหลัก</string>
+    <string name="nav_map">แผนที่</string>
+    <string name="nav_notifications">การแจ้งเตือน</string>
+    <string name="nav_profile">โปรไฟล์</string>
+
+    <!-- Login Screen -->
+    <string name="welcome_to_au_fondue">ยินดีต้อนรับสู่ AU Fondue</string>
+    <string name="admin_portal_login">เข้าสู่ระบบผู้ดูแล</string>
+    <string name="log_in_with_microsoft">เข้าสู่ระบบด้วย Microsoft</string>
+    <string name="by_logging_in">การเข้าสู่ระบบหมายความว่าคุณยอมรับข้อกำหนดและนโยบายความเป็นส่วนตัว</string>
+
+    <!-- Home Screen -->
+    <string name="good_morning">สวัสดีตอนเช้า</string>
+    <string name="good_afternoon">สวัสดีตอนบ่าย</string>
+    <string name="good_evening">สวัสดีตอนเย็น</string>
+    <string name="good_night">ราตรีสวัสดิ์</string>
+    <string name="you_have_pending_reports">คุณมี %d รายงานที่รอดำเนินการ</string>
+    <string name="all_reports_up_to_date">รายงานทั้งหมดเป็นปัจจุบัน!</string>
+    <string name="quick_overview">ภาพรวมด่วน</string>
+    <string name="total_reports">รายงานทั้งหมด</string>
+    <string name="pending">รอดำเนินการ</string>
+    <string name="in_progress">กำลังดำเนินการ</string>
+    <string name="completed">เสร็จสิ้น</string>
+    <string name="your_submitted_reports">รายงานที่คุณส่ง</string>
+    <string name="no_reports_submitted">คุณยังไม่ได้ส่งรายงานใด ๆ</string>
+    <string name="submit_a_report">ส่งรายงาน</string>
+
+    <!-- Report Screen -->
+    <string name="report_issue">รายงานปัญหา</string>
+    <string name="enter_description">กรอกรายละเอียด</string>
+    <string name="attach_photo">แนบรูปภาพ</string>
+    <string name="photos_attached">แนบรูปภาพ %d รูป</string>
+    <string name="select_location">เลือกสถานที่</string>
+    <string name="use_custom_location">ใช้สถานที่กำหนดเอง</string>
+    <string name="enter_location_description">กรอกรายละเอียดสถานที่</string>
+    <string name="selected_location">สถานที่ที่เลือก</string>
+    <string name="select_category">เลือกหมวดหมู่</string>
+    <string name="enter_custom_category">กรอกหมวดหมู่กำหนดเอง</string>
+    <string name="submit">ส่ง</string>
+    <string name="add_photo">เพิ่มรูปภาพ</string>
+    <string name="take_photo">ถ่ายรูป</string>
+    <string name="choose_from_gallery">เลือกจากแกลเลอรี่</string>
+
+    <!-- Categories -->
+    <string name="category_cracked">แตกร้าว</string>
+    <string name="category_leaking">รั่วซึม</string>
+    <string name="category_flooded">น้ำท่วม</string>
+    <string name="category_broken">เสียหาย</string>
+    <string name="category_custom">กำหนดเอง</string>
+
+    <!-- Status -->
+    <string name="status">สถานะ</string>
+    <string name="status_pending">รอดำเนินการ</string>
+    <string name="status_in_progress">กำลังดำเนินการ</string>
+    <string name="status_completed">เสร็จสิ้น</string>
+
+    <!-- Map Screen -->
+    <string name="map_view">มุมมองแผนที่</string>
+
+    <!-- Notification Screen -->
+    <string name="notifications">การแจ้งเตือน</string>
+    <string name="notification_settings">ตั้งค่าการแจ้งเตือน</string>
+    <string name="no_notifications">ไม่มีการแจ้งเตือน</string>
+    <string name="new_report">รายงานใหม่</string>
+    <string name="this_month">เดือนนี้</string>
+    <string name="yesterday">เมื่อวาน</string>
+    <string name="view">ดู</string>
+
+    <!-- Notification Details -->
+    <string name="issue_details">รายละเอียดปัญหา</string>
+    <string name="location">สถานที่</string>
+    <string name="category">หมวดหมู่</string>
+    <string name="description">รายละเอียด</string>
+    <string name="report_photos">รูปภาพรายงาน</string>
+    <string name="update_from_om">อัปเดตจาก OM</string>
+    <string name="update_photos">รูปภาพอัปเดต</string>
+    <string name="report_photo">รูปภาพรายงาน</string>
+    <string name="update_photo">รูปภาพอัปเดต</string>
+    <string name="error_loading_image">เกิดข้อผิดพลาดในการโหลดรูปภาพ</string>
+    <string name="image_not_available">ไม่มีรูปภาพ</string>
+    <string name="latitude">ละติจูด</string>
+    <string name="longitude">ลองติจูด</string>
+    <string name="not_specified">ไม่ระบุ</string>
+    <string name="comments">ความคิดเห็น</string>
+
+    <!-- Profile Screen -->
+    <string name="update_avatar">อัปเดตอวตาร</string>
+    <string name="report_issues">รายงานปัญหา</string>
+    <string name="enable_notifications">เปิดการแจ้งเตือน</string>
+    <string name="language">ภาษา</string>
+    <string name="select_language">เลือกภาษา</string>
+    <string name="sign_out">ออกจากระบบ</string>
+    <string name="english">English</string>
+    <string name="thai">ไทย</string>
+
+    <!-- Time -->
+    <string name="just_now">เมื่อสักครู่</string>
+    <string name="min_ago">%d นาทีที่แล้ว</string>
+    <string name="hour_ago">%d ชั่วโมงที่แล้ว</string>
+    <string name="hours_ago">%d ชั่วโมงที่แล้ว</string>
+    <string name="day_ago">%d วันที่แล้ว</string>
+    <string name="days_ago">%d วันที่แล้ว</string>
+
+    <!-- Common -->
+    <string name="back">กลับ</string>
+    <string name="close">ปิด</string>
+    <string name="cancel">ยกเลิก</string>
+    <string name="ok">ตกลง</string>
+    <string name="error">ข้อผิดพลาด</string>
+    <string name="something_went_wrong">เกิดข้อผิดพลาด</string>
+    <string name="retry">ลองใหม่</string>
+    <string name="loading">กำลังโหลด</string>
+    <string name="failed_to_load">โหลดไม่สำเร็จ</string>
+    <string name="no_data">ไม่มีข้อมูล</string>
 </resources>

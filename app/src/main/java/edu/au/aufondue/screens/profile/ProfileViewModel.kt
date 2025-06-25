@@ -1,11 +1,16 @@
+// Location: app/src/main/java/edu/au/aufondue/screens/profile/ProfileViewModel.kt
+// UPDATE THIS EXISTING FILE - REPLACE ALL CONTENT
+
 package edu.au.aufondue.screens.profile
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import edu.au.aufondue.auth.AuthManager
 import edu.au.aufondue.auth.UserPreferences
+import edu.au.aufondue.utils.LanguageManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +23,8 @@ data class ProfileState(
     val displayName: String = "",
     val email: String = "",
     val avatarUrl: String = "",
-    val notificationsEnabled: Boolean = true
+    val notificationsEnabled: Boolean = true,
+    val selectedLanguage: String = LanguageManager.ENGLISH
 )
 
 class ProfileViewModel(application: Application) : AndroidViewModel(application) {
@@ -45,10 +51,14 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                     val email = prefs.getUserEmail() ?: ""
                     val displayName = prefs.getUsername() ?: email.split("@").firstOrNull() ?: ""
 
+                    // Get saved language preference
+                    val savedLanguage = LanguageManager.getSelectedLanguage(getApplication())
+
                     withContext(Dispatchers.Main) {
                         _state.value = _state.value.copy(
                             displayName = displayName,
-                            email = email
+                            email = email,
+                            selectedLanguage = savedLanguage
                         )
                     }
                 }
@@ -78,6 +88,29 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         _state.value = _state.value.copy(
             notificationsEnabled = !_state.value.notificationsEnabled
         )
+    }
+
+    fun changeLanguage(context: Context, languageCode: String) {
+        viewModelScope.launch {
+            try {
+                // Save language preference and update locale
+                LanguageManager.setLocale(context, languageCode)
+
+                // Update state
+                _state.value = _state.value.copy(
+                    selectedLanguage = languageCode
+                )
+
+                Log.d("ProfileViewModel", "Language changed to: $languageCode")
+
+                // Recreate activity to apply language changes immediately
+                if (context is android.app.Activity) {
+                    context.recreate()
+                }
+            } catch (e: Exception) {
+                Log.e("ProfileViewModel", "Error changing language", e)
+            }
+        }
     }
 
     fun signOut(onSignOutComplete: () -> Unit) {

@@ -1,3 +1,6 @@
+// Location: app/src/main/java/edu/au/aufondue/screens/notification/NotificationDetailsScreen.kt
+// UPDATE THIS EXISTING FILE - REPLACE ALL CONTENT
+
 package edu.au.aufondue.screens.notification
 
 import android.os.Build
@@ -23,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -33,6 +37,7 @@ import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import edu.au.aufondue.R
 import edu.au.aufondue.api.RetrofitClient
 import edu.au.aufondue.api.models.UpdateResponse
 
@@ -54,10 +59,10 @@ fun NotificationDetailsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Issue Details") },
+                title = { Text(stringResource(R.string.issue_details)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 }
             )
@@ -78,7 +83,7 @@ fun NotificationDetailsScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Error,
-                        contentDescription = "Error",
+                        contentDescription = stringResource(R.string.error),
                         modifier = Modifier.size(48.dp),
                         tint = MaterialTheme.colorScheme.error
                     )
@@ -86,7 +91,7 @@ fun NotificationDetailsScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        text = "Error",
+                        text = stringResource(R.string.error),
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.error
                     )
@@ -94,7 +99,7 @@ fun NotificationDetailsScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = state.error ?: "Something went wrong",
+                        text = state.error ?: stringResource(R.string.something_went_wrong),
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -108,7 +113,7 @@ fun NotificationDetailsScreen(
                             containerColor = MaterialTheme.colorScheme.primary
                         )
                     ) {
-                        Text("Retry")
+                        Text(stringResource(R.string.retry))
                     }
                 }
             } else {
@@ -142,7 +147,7 @@ fun NotificationDetailsScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = "Status: ${issue.status}",
+                                        text = "${stringResource(R.string.status)}: ${getStatusText(issue.status)}",
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = when (issue.status) {
@@ -168,15 +173,15 @@ fun NotificationDetailsScreen(
                                     // Location
                                     Column {
                                         Text(
-                                            text = "Location",
+                                            text = stringResource(R.string.location),
                                             style = MaterialTheme.typography.labelLarge,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                         Text(
                                             text = if (issue.usingCustomLocation)
-                                                issue.customLocation ?: "Not specified"
+                                                issue.customLocation ?: stringResource(R.string.not_specified)
                                             else
-                                                "Lat: ${issue.latitude}, Long: ${issue.longitude}",
+                                                "${stringResource(R.string.latitude)}: ${issue.latitude}, ${stringResource(R.string.longitude)}: ${issue.longitude}",
                                             style = MaterialTheme.typography.bodyLarge
                                         )
                                     }
@@ -186,12 +191,12 @@ fun NotificationDetailsScreen(
                                     // Category
                                     Column {
                                         Text(
-                                            text = "Category",
+                                            text = stringResource(R.string.category),
                                             style = MaterialTheme.typography.labelLarge,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                         Text(
-                                            text = issue.category,
+                                            text = getCategoryText(issue.category),
                                             style = MaterialTheme.typography.bodyLarge
                                         )
                                     }
@@ -210,7 +215,7 @@ fun NotificationDetailsScreen(
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     Text(
-                                        text = "Description",
+                                        text = stringResource(R.string.description),
                                         style = MaterialTheme.typography.labelLarge,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -233,7 +238,7 @@ fun NotificationDetailsScreen(
                         if (state.updates.isNotEmpty()) {
                             item {
                                 Text(
-                                    text = "Update From OM",
+                                    text = stringResource(R.string.update_from_om),
                                     style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.padding(vertical = 8.dp)
@@ -248,6 +253,27 @@ fun NotificationDetailsScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun getStatusText(status: String): String {
+    return when (status) {
+        "PENDING" -> stringResource(R.string.status_pending)
+        "IN PROGRESS" -> stringResource(R.string.status_in_progress)
+        "COMPLETED" -> stringResource(R.string.status_completed)
+        else -> status
+    }
+}
+
+@Composable
+private fun getCategoryText(category: String): String {
+    return when (category) {
+        "Cracked" -> stringResource(R.string.category_cracked)
+        "Leaking" -> stringResource(R.string.category_leaking)
+        "Flooded" -> stringResource(R.string.category_flooded)
+        "Broken" -> stringResource(R.string.category_broken)
+        else -> category
     }
 }
 
@@ -266,7 +292,7 @@ fun IssuePhotosCard(photos: List<String>) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Report Photos (${photos.size})",
+                text = "${stringResource(R.string.report_photos)} (${photos.size})",
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -299,7 +325,7 @@ fun IssuePhotosCard(photos: List<String>) {
                                     .memoryCachePolicy(CachePolicy.ENABLED)
                                     .crossfade(true)
                                     .build(),
-                                contentDescription = "Report Photo ${page + 1}",
+                                contentDescription = "${stringResource(R.string.report_photo)} ${page + 1}",
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .clip(RoundedCornerShape(12.dp)),
@@ -337,7 +363,7 @@ fun IssuePhotosCard(photos: List<String>) {
                                     verticalArrangement = Arrangement.Center
                                 ) {
                                     Text(
-                                        "Error loading image",
+                                        stringResource(R.string.error_loading_image),
                                         style = MaterialTheme.typography.bodyLarge
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
@@ -363,7 +389,7 @@ fun IssuePhotosCard(photos: List<String>) {
                                 verticalArrangement = Arrangement.Center
                             ) {
                                 Text(
-                                    "Image not available",
+                                    stringResource(R.string.image_not_available),
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                             }
@@ -421,7 +447,7 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Status: ${update.status}",
+                    text = "${stringResource(R.string.status)}: ${getStatusText(update.status)}",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = when (update.status) {
@@ -442,7 +468,7 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
             // Comments
             if (!update.comment.isNullOrEmpty()) {
                 Text(
-                    text = "Comments:",
+                    text = "${stringResource(R.string.comments)}:",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Medium
                 )
@@ -455,7 +481,7 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
             // Photos if any
             if (update.photoUrls.isNotEmpty()) {
                 Text(
-                    text = "Update Photos (${update.photoUrls.size}):",
+                    text = "${stringResource(R.string.update_photos)} (${update.photoUrls.size}):",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(top = 8.dp)
@@ -492,7 +518,7 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                                         .memoryCachePolicy(CachePolicy.ENABLED)
                                         .crossfade(true)
                                         .build(),
-                                    contentDescription = "Update Photo ${page + 1}",
+                                    contentDescription = "${stringResource(R.string.update_photo)} ${page + 1}",
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .clip(RoundedCornerShape(12.dp)),
@@ -530,7 +556,7 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                                         verticalArrangement = Arrangement.Center
                                     ) {
                                         Text(
-                                            "Error loading image",
+                                            stringResource(R.string.error_loading_image),
                                             style = MaterialTheme.typography.bodyLarge
                                         )
                                         Spacer(modifier = Modifier.height(8.dp))
@@ -556,7 +582,7 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                                     verticalArrangement = Arrangement.Center
                                 ) {
                                     Text(
-                                        "Image not available",
+                                        stringResource(R.string.image_not_available),
                                         style = MaterialTheme.typography.bodyLarge
                                     )
                                 }

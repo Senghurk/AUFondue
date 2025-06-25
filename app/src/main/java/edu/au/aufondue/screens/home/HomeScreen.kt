@@ -1,3 +1,6 @@
+// Location: app/src/main/java/edu/au/aufondue/screens/home/HomeScreen.kt
+// UPDATE THIS EXISTING FILE - REPLACE ALL CONTENT
+
 package edu.au.aufondue.screens.home
 
 import android.os.Build
@@ -25,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -36,6 +40,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.transformations
 import coil3.transform.CircleCropTransformation
+import edu.au.aufondue.R
 import edu.au.aufondue.auth.UserPreferences
 import java.util.*
 
@@ -60,17 +65,17 @@ fun HomeScreen(
 
     // Get user preferences
     val userPreferences = UserPreferences.getInstance(context)
-    val username = userPreferences.getUsername() ?: "User"
+    val username = userPreferences.getUsername() ?: stringResource(R.string.nav_profile)
     val userEmail = userPreferences.getUserEmail() ?: ""
 
-    // Time-based greeting
+    // Time-based greeting using string resources
     val greeting = remember {
         val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
         when (hour) {
-            in 0..11 -> "Good morning"
-            in 12..16 -> "Good afternoon"
-            in 17..20 -> "Good evening"
-            else -> "Good night"
+            in 0..11 -> stringResource(R.string.good_morning)
+            in 12..16 -> stringResource(R.string.good_afternoon)
+            in 17..20 -> stringResource(R.string.good_evening)
+            else -> stringResource(R.string.good_night)
         }
     }
 
@@ -94,25 +99,25 @@ fun HomeScreen(
 
         listOf(
             QuickStatCard(
-                title = "Total Reports",
+                title = stringResource(R.string.total_reports),
                 count = totalReports,
                 icon = Icons.Default.Assignment,
                 color = primaryColor
             ),
             QuickStatCard(
-                title = "Pending",
+                title = stringResource(R.string.pending),
                 count = pendingReports,
                 icon = Icons.Default.Pending,
                 color = Color(0xFFFFA000)
             ),
             QuickStatCard(
-                title = "In Progress",
+                title = stringResource(R.string.in_progress),
                 count = inProgressReports,
                 icon = Icons.Default.HourglassEmpty,
                 color = Color(0xFF2196F3)
             ),
             QuickStatCard(
-                title = "Completed",
+                title = stringResource(R.string.completed),
                 count = completedReports,
                 icon = Icons.Default.CheckCircle,
                 color = Color(0xFF4CAF50)
@@ -137,7 +142,7 @@ fun HomeScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "AU Fondue",
+                        text = stringResource(R.string.app_name),
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.titleLarge
@@ -153,7 +158,7 @@ fun HomeScreen(
             ) {
                 Icon(
                     Icons.Default.Add,
-                    contentDescription = "Create Report",
+                    contentDescription = stringResource(R.string.create_report),
                     tint = Color.White
                 )
             }
@@ -192,7 +197,7 @@ fun HomeScreen(
                 // Reports Section Header
                 item {
                     Text(
-                        text = "Your Submitted Reports",
+                        text = stringResource(R.string.your_submitted_reports),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -271,9 +276,13 @@ private fun WelcomeSection(
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = if (pendingReportsCount > 0) {
-                        "You have $pendingReportsCount pending report${if (pendingReportsCount == 1) "" else "s"}"
+                        stringResource(
+                            R.string.pending_reports,
+                            pendingReportsCount,
+                            if (pendingReportsCount == 1) "" else "s"
+                        )
                     } else {
-                        "All reports are up to date!"
+                        stringResource(R.string.no_pending_reports)
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
@@ -302,7 +311,7 @@ private fun WelcomeSection(
 private fun QuickStatsSection(stats: List<QuickStatCard>) {
     Column {
         Text(
-            text = "Quick Overview",
+            text = stringResource(R.string.quick_overview),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -446,7 +455,7 @@ private fun ErrorSection(
                     containerColor = MaterialTheme.colorScheme.error
                 )
             ) {
-                Text("Retry")
+                Text(stringResource(R.string.retry))
             }
         }
     }
@@ -472,7 +481,7 @@ private fun EmptyReportsSection(onNavigateToReport: () -> Unit) {
                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
             Text(
-                text = "You haven't submitted any reports yet.",
+                text = stringResource(R.string.no_reports_yet),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyLarge
             )
@@ -480,7 +489,7 @@ private fun EmptyReportsSection(onNavigateToReport: () -> Unit) {
                 onClick = onNavigateToReport,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Submit a report")
+                Text(stringResource(R.string.submit_a_report))
             }
         }
     }

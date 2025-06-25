@@ -1,9 +1,13 @@
+// Location: app/src/main/java/edu/au/aufondue/auth/AuthManager.kt
+// UPDATE THIS EXISTING FILE - ADD THE LANGUAGE INITIALIZATION
+
 package edu.au.aufondue.auth
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import edu.au.aufondue.api.RetrofitClient
+import edu.au.aufondue.utils.LanguageManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -28,6 +32,13 @@ class AuthManager private constructor(private val activity: Context) {
                 // Save mock user info locally
                 withContext(Dispatchers.Main) {
                     UserPreferences.getInstance(activity).saveUserInfo(mockEmail, mockUsername)
+
+                    // Set default language to English on first login
+                    val currentLanguage = LanguageManager.getSelectedLanguage(activity)
+                    if (currentLanguage.isEmpty()) {
+                        LanguageManager.setLocale(activity, LanguageManager.ENGLISH)
+                        Log.d(TAG, "Set default language to English")
+                    }
                 }
 
                 // Use a mock token for MSAL expectations

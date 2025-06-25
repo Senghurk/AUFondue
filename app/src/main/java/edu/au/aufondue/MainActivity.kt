@@ -1,5 +1,9 @@
+// Location: app/src/main/java/edu/au/aufondue/MainActivity.kt
+// UPDATE THIS EXISTING FILE - REPLACE THE NAVIGATION SECTION
+
 package edu.au.aufondue
 
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -28,7 +32,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import coil3.ImageLoader
 import edu.au.aufondue.navigation.Screen
-import edu.au.aufondue.navigation.bottomNavigationItems
+import edu.au.aufondue.navigation.getBottomNavigationItems
 import edu.au.aufondue.screens.home.HomeScreen
 import edu.au.aufondue.screens.login.LoginScreen
 import edu.au.aufondue.screens.map.MapScreen
@@ -37,11 +41,15 @@ import edu.au.aufondue.screens.notification.NotificationScreen
 import edu.au.aufondue.screens.profile.ProfileScreen
 import edu.au.aufondue.screens.report.ReportScreen
 import edu.au.aufondue.ui.theme.AUFondueTheme
+import edu.au.aufondue.utils.LanguageManager
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Apply saved language
+        LanguageManager.applyLanguage(this)
 
         ImageLoader.Builder(this).build()
 
@@ -64,8 +72,9 @@ class MainActivity : ComponentActivity() {
                             NavigationBar(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(80.dp) // Increased height for better text display
+                                    .height(80.dp)
                             ) {
+                                val bottomNavigationItems = getBottomNavigationItems()
                                 bottomNavigationItems.forEach { item ->
                                     NavigationBarItem(
                                         icon = {
@@ -172,5 +181,9 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(LanguageManager.setLocale(newBase ?: this, LanguageManager.getSavedLanguage(newBase ?: this)))
     }
 }

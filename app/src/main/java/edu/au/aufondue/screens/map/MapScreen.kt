@@ -1,3 +1,6 @@
+// Location: app/src/main/java/edu/au/aufondue/screens/map/MapScreen.kt
+// UPDATE THIS EXISTING FILE - REPLACE ALL CONTENT
+
 package edu.au.aufondue.screens.map
 
 import android.Manifest
@@ -15,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -26,6 +30,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
+import edu.au.aufondue.R
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -96,12 +101,12 @@ fun MapScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Map View") },
+                title = { Text(stringResource(R.string.map_view)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 }
@@ -187,11 +192,11 @@ fun MapScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = "Category: ${issue.category}",
+                                text = "${stringResource(R.string.category)}: ${issue.category}",
                                 style = MaterialTheme.typography.bodySmall
                             )
                             Text(
-                                text = "Status: ${issue.status}",
+                                text = "${stringResource(R.string.status)}: ${issue.status}",
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
@@ -201,7 +206,7 @@ fun MapScreen(
                                 .fillMaxWidth()
                                 .padding(top = 8.dp)
                         ) {
-                            Text("Close")
+                            Text(stringResource(R.string.close))
                         }
                     }
                 }
@@ -231,12 +236,12 @@ fun MapScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Error",
+                            text = stringResource(R.string.error),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )
                         Text(
-                            text = error ?: "Unknown error",
+                            text = error ?: stringResource(R.string.something_went_wrong),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onErrorContainer,
                             modifier = Modifier.padding(vertical = 8.dp)
@@ -248,7 +253,7 @@ fun MapScreen(
                                 contentColor = MaterialTheme.colorScheme.errorContainer
                             )
                         ) {
-                            Text("Retry")
+                            Text(stringResource(R.string.retry))
                         }
                     }
                 }

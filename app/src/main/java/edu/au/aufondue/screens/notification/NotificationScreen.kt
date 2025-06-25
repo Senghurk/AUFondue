@@ -1,3 +1,6 @@
+// Location: app/src/main/java/edu/au/aufondue/screens/notification/NotificationScreen.kt
+// UPDATE THIS EXISTING FILE - REPLACE ALL CONTENT
+
 package edu.au.aufondue.screens.notification
 
 import androidx.compose.foundation.background
@@ -18,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -46,17 +50,17 @@ fun NotificationScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Notifications") },
+                title = { Text(stringResource(R.string.notifications)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 actions = {
                     IconButton(onClick = { /* Handle notification settings */ }) {
                         Icon(
                             Icons.Default.Notifications,
-                            contentDescription = "Notification Settings"
+                            contentDescription = stringResource(R.string.notification_settings)
                         )
                     }
                 }
@@ -84,7 +88,7 @@ fun NotificationScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Error,
-                            contentDescription = "Error",
+                            contentDescription = stringResource(R.string.error),
                             modifier = Modifier.size(48.dp),
                             tint = MaterialTheme.colorScheme.error
                         )
@@ -92,7 +96,7 @@ fun NotificationScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Text(
-                            text = "Error",
+                            text = stringResource(R.string.error),
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.error
                         )
@@ -100,7 +104,7 @@ fun NotificationScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            text = error ?: "Something went wrong",
+                            text = error ?: stringResource(R.string.something_went_wrong),
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -114,7 +118,7 @@ fun NotificationScreen(
                                 containerColor = MaterialTheme.colorScheme.primary
                             )
                         ) {
-                            Text("Retry")
+                            Text(stringResource(R.string.retry))
                         }
                     }
                 }
@@ -127,7 +131,7 @@ fun NotificationScreen(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = "No notifications",
+                            text = stringResource(R.string.no_notifications),
                             style = MaterialTheme.typography.bodyLarge,
                             textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -141,9 +145,9 @@ fun NotificationScreen(
                     ) {
                         val groupedNotifications = notifications.groupBy { notification ->
                             when {
-                                System.currentTimeMillis() - notification.timestamp < 24 * 60 * 60 * 1000 -> "New report"
-                                System.currentTimeMillis() - notification.timestamp < 7 * 24 * 60 * 60 * 1000 -> "This month"
-                                else -> "Yesterday"
+                                System.currentTimeMillis() - notification.timestamp < 24 * 60 * 60 * 1000 -> stringResource(R.string.new_report)
+                                System.currentTimeMillis() - notification.timestamp < 7 * 24 * 60 * 60 * 1000 -> stringResource(R.string.this_month)
+                                else -> stringResource(R.string.yesterday)
                             }
                         }
 
@@ -236,7 +240,7 @@ fun NotificationItem(
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Text(
-                    "View",
+                    stringResource(R.string.view),
                     style = MaterialTheme.typography.labelLarge,
                     color = Color.White
                 )

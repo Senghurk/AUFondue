@@ -1,10 +1,16 @@
+// Location: app/src/main/java/edu/au/aufondue/navigation/NavGraph.kt
+// UPDATE THIS EXISTING FILE - REPLACE ALL CONTENT
+
 package edu.au.aufondue.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import edu.au.aufondue.R
 
 sealed class Screen(val route: String) {
     object Login : Screen("login")
@@ -24,24 +30,25 @@ data class NavigationItem(
     val route: String
 )
 
-val bottomNavigationItems = listOf(
+@Composable
+fun getBottomNavigationItems() = listOf(
     NavigationItem(
-        title = "Home",
+        title = stringResource(R.string.nav_home),
         icon = Icons.Default.Home,
         route = Screen.Home.route
     ),
     NavigationItem(
-        title = "Map",
+        title = stringResource(R.string.nav_map),
         icon = Icons.Default.Map,
         route = Screen.Map.route
     ),
     NavigationItem(
-        title = "Notifications",
+        title = stringResource(R.string.nav_notifications),
         icon = Icons.Default.Notifications,
         route = Screen.Notification.route
     ),
     NavigationItem(
-        title = "Profile",
+        title = stringResource(R.string.nav_profile),
         icon = Icons.Default.Person,
         route = Screen.Profile.route
     )

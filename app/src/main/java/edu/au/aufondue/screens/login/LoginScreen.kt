@@ -1,3 +1,6 @@
+// Location: app/src/main/java/edu/au/aufondue/screens/login/LoginScreen.kt
+// UPDATE THIS EXISTING FILE - REPLACE ALL CONTENT
+
 package edu.au.aufondue.screens.login
 
 import android.widget.Toast
@@ -102,7 +105,7 @@ fun LoginScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Log in with Microsoft",
+                        text = stringResource(R.string.login_with_microsoft),
                         style = MaterialTheme.typography.labelLarge
                     )
                 }

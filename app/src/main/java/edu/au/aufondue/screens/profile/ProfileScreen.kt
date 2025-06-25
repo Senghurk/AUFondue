@@ -1,4 +1,6 @@
-// ProfileScreen.kt
+// Location: app/src/main/java/edu/au/aufondue/screens/profile/ProfileScreen.kt
+// UPDATE THIS EXISTING FILE - REPLACE ALL CONTENT
+
 package edu.au.aufondue.screens.profile
 
 import android.util.Log
@@ -13,6 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -22,6 +25,8 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.transformations
 import coil3.transform.CircleCropTransformation
+import edu.au.aufondue.R
+import edu.au.aufondue.utils.LanguageManager
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
@@ -31,6 +36,7 @@ fun ProfileScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
+    var showLanguageDialog by remember { mutableStateOf(false) }
 
     // Initialize avatar on first launch
     LaunchedEffect(Unit) {
@@ -117,7 +123,7 @@ fun ProfileScreen(
             onClick = { viewModel.updateAvatar() },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Update Avatar")
+            Text(stringResource(R.string.update_avatar))
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -130,10 +136,11 @@ fun ProfileScreen(
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
-                    text = "Report Issues",
+                    text = stringResource(R.string.report_issues),
                     style = MaterialTheme.typography.titleMedium
                 )
 
+                // Notifications Setting
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -141,11 +148,31 @@ fun ProfileScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Enable Notifications")
+                    Text(stringResource(R.string.enable_notifications))
                     Switch(
                         checked = state.notificationsEnabled,
                         onCheckedChange = { viewModel.toggleNotifications() }
                     )
+                }
+
+                // Language Setting
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(stringResource(R.string.language))
+                    TextButton(
+                        onClick = { showLanguageDialog = true }
+                    ) {
+                        Text(
+                            text = LanguageManager.getDisplayName(
+                                LanguageManager.getSelectedLanguage(context)
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -160,7 +187,88 @@ fun ProfileScreen(
                 containerColor = MaterialTheme.colorScheme.error
             )
         ) {
-            Text("Sign out")
+            Text(stringResource(R.string.sign_out))
         }
     }
+
+    // Language Selection Dialog
+    if (showLanguageDialog) {
+        LanguageSelectionDialog(
+            currentLanguage = LanguageManager.getSelectedLanguage(context),
+            onLanguageSelected = { languageCode ->
+                viewModel.changeLanguage(context, languageCode)
+                showLanguageDialog = false
+            },
+            onDismiss = { showLanguageDialog = false }
+        )
+    }
+}
+
+@Composable
+fun LanguageSelectionDialog(
+    currentLanguage: String,
+    onLanguageSelected: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var selectedLanguage by remember { mutableStateOf(currentLanguage) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(text = stringResource(R.string.select_language))
+        },
+        text = {
+            Column {
+                // English Option
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = selectedLanguage == LanguageManager.ENGLISH,
+                        onClick = { selectedLanguage = LanguageManager.ENGLISH }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.language_english),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                // Thai Option
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = selectedLanguage == LanguageManager.THAI,
+                        onClick = { selectedLanguage = LanguageManager.THAI }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.language_thai),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onLanguageSelected(selectedLanguage)
+                }
+            ) {
+                Text(stringResource(R.string.confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
+    )
 }
