@@ -1,4 +1,3 @@
-// IssueResponse.kt
 package edu.au.aufondue.api.models
 
 import com.squareup.moshi.JsonClass

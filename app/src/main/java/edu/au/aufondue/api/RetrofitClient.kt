@@ -30,25 +30,25 @@ class LocalDateTimeAdapter {
     @FromJson
     fun fromJson(value: String): LocalDateTime {
         return try {
-            // First try to parse as ISO datetime with timezone
+            // parse as ISO datetime with timezone
             try {
                 val zonedDateTime = ZonedDateTime.parse(value)
                 Log.d("LocalDateTimeAdapter", "Parsed ZonedDateTime: $zonedDateTime")
                 // Convert to device's timezone
                 zonedDateTime.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime()
             } catch (e: DateTimeParseException) {
-                // If that fails, try parsing as local datetime
+                // try parsing as local datetime
                 try {
                     val localDateTime = LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                     Log.d("LocalDateTimeAdapter", "Parsed LocalDateTime: $localDateTime")
                     localDateTime
                 } catch (e2: DateTimeParseException) {
-                    // Try one more format that might be common from servers
+
                     try {
                         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                         LocalDateTime.parse(value, formatter)
                     } catch (e3: Exception) {
-                        throw e3 // Re-throw if all parsing attempts fail
+                        throw e3 // re-throw if all parsing  fail
                     }
                 }
             }
@@ -63,14 +63,14 @@ class LocalDateTimeAdapter {
 object RetrofitClient {
     private const val TAG = "RetrofitClient"
 
-    // Keep both URLs for easy switching during development/debugging
+    //  easy switching during development/debugging
     private const val BASE_URL_LOCAL = "http://10.0.2.2:8080/"
     private const val BASE_URL_PROD = "https://aufondue-backend.kindisland-399ef298.southeastasia.azurecontainerapps.io/"
 
-    // Select which URL to use
+    // Select BASE_URL
     private const val BASE_URL = BASE_URL_PROD
 
-    // Extract domain for image URL fixing
+    // Extract domain - image URL fixing
     val DOMAIN = BASE_URL.removeSuffix("/")
 
     // SAS Token for Azure Blob Storage
@@ -140,7 +140,7 @@ object RetrofitClient {
     }
 
     /**
-     * Fixes image URL issues by ensuring they have the proper domain and SAS token
+     * Fixes image URL issues ( proper domain and SAS token )
      */
     fun fixImageUrl(url: String): String {
         Log.d(TAG, "Original image URL: $url")
