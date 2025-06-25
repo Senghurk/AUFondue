@@ -16,24 +16,29 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,7 +48,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -57,16 +61,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.*
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import edu.au.aufondue.R
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -90,29 +95,12 @@ fun ReportScreen(
         viewModel.setContext(context)
     }
 
-    var hasLocationPermission by remember {
-        mutableStateOf(
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        )
-    }
-
     var hasCameraPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.CAMERA
             ) == PackageManager.PERMISSION_GRANTED
-        )
-    }
-
-    val defaultLocation = LatLng(13.822136, 100.513971) // Default to AU
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(
-            state.location?.let { LatLng(it.latitude, it.longitude) } ?: defaultLocation,
-            15f
         )
     }
 
@@ -124,12 +112,6 @@ fun ReportScreen(
                 viewModel.onPhotoSelected(uri)
             }
         }
-    }
-
-    val locationPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        hasLocationPermission = isGranted
     }
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
@@ -144,18 +126,13 @@ fun ReportScreen(
         }
     }
 
+    // Updated gallery launcher to support multiple photo selection
     val galleryLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let { viewModel.onPhotoSelected(it) }
-    }
-
-    LaunchedEffect(cameraPositionState.position) {
-        val position = cameraPositionState.position
-        viewModel.onLocationSelected(
-            position.target.latitude,
-            position.target.longitude
-        )
+        ActivityResultContracts.GetMultipleContents()
+    ) { uris: List<Uri> ->
+        uris.forEach { uri ->
+            viewModel.onPhotoSelected(uri)
+        }
     }
 
     // Get string resources for categories
@@ -226,6 +203,7 @@ fun ReportScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // Description Field
                 OutlinedTextField(
                     value = state.description,
                     onValueChange = viewModel::onDescriptionChange,
@@ -234,6 +212,7 @@ fun ReportScreen(
                     minLines = 3
                 )
 
+                // Photo Attachment Section
                 Button(
                     onClick = { showAttachmentDialog = true },
                     modifier = Modifier.fillMaxWidth(),
@@ -245,70 +224,55 @@ fun ReportScreen(
                     Text(stringResource(R.string.attach_photo))
                 }
 
+                // Photo Preview Section
                 if (state.selectedPhotos.isNotEmpty()) {
-                    Text(
-                        stringResource(R.string.photos_attached, state.selectedPhotos.size),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.select_location),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium
-                    )
-
-                    Row(
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text(stringResource(R.string.use_custom_location))
-                        Switch(
-                            checked = state.isUsingCustomLocation,
-                            onCheckedChange = { viewModel.toggleLocationInputMethod() }
+                        Text(
+                            text = stringResource(R.string.photos_attached, state.selectedPhotos.size),
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Medium
                         )
-                    }
 
-                    if (state.isUsingCustomLocation) {
-                        OutlinedTextField(
-                            value = state.customLocation,
-                            onValueChange = viewModel::onCustomLocationChange,
+                        LazyRow(
                             modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text(stringResource(R.string.enter_location_description)) },
-                            minLines = 2
-                        )
-                    } else {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp)
-                                .clip(RoundedCornerShape(12.dp))
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(vertical = 4.dp)
                         ) {
-                            GoogleMap(
-                                modifier = Modifier.fillMaxSize(),
-                                cameraPositionState = cameraPositionState,
-                                properties = MapProperties(isMyLocationEnabled = hasLocationPermission),
-                                uiSettings = MapUiSettings(
-                                    myLocationButtonEnabled = hasLocationPermission,
-                                    zoomControlsEnabled = true
+                            items(state.selectedPhotos) { uri ->
+                                PhotoPreviewItem(
+                                    uri = uri,
+                                    onRemove = { viewModel.onPhotoRemoved(uri) }
                                 )
-                            ) {
-                                state.location?.let { location ->
-                                    Marker(
-                                        state = MarkerState(position = LatLng(location.latitude, location.longitude)),
-                                        title = stringResource(R.string.selected_location)
-                                    )
-                                }
                             }
                         }
                     }
                 }
 
+                // Location Section (Custom location only)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.provide_location),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+
+                    OutlinedTextField(
+                        value = state.customLocation,
+                        onValueChange = viewModel::onCustomLocationChange,
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text(stringResource(R.string.enter_location_description)) },
+                        minLines = 2
+                    )
+                }
+
+                // Category Selection
                 ExposedDropdownMenuBox(
                     expanded = expanded,
                     onExpandedChange = { expanded = !expanded }
@@ -345,6 +309,7 @@ fun ReportScreen(
                     }
                 }
 
+                // Custom Category Field
                 AnimatedVisibility(
                     visible = state.category == categoryCustom,
                     enter = fadeIn() + expandVertically(),
@@ -358,6 +323,7 @@ fun ReportScreen(
                     )
                 }
 
+                // Submit Button
                 Button(
                     onClick = { viewModel.submitReport(onSuccess = onNavigateBack) },
                     modifier = Modifier
@@ -388,6 +354,50 @@ fun ReportScreen(
                             Text(stringResource(R.string.ok))
                         }
                     }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PhotoPreviewItem(
+    uri: Uri,
+    onRemove: () -> Unit
+) {
+    val context = LocalContext.current
+
+    Card(
+        modifier = Modifier.size(80.dp),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(uri)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Selected photo",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+
+            // Remove button
+            IconButton(
+                onClick = onRemove,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(24.dp)
+                    .background(
+                        Color.Black.copy(alpha = 0.6f),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+            ) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Remove photo",
+                    tint = Color.White,
+                    modifier = Modifier.size(16.dp)
                 )
             }
         }

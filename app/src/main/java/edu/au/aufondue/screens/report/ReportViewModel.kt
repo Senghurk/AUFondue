@@ -23,19 +23,12 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
-data class LocationData(
-    val latitude: Double,
-    val longitude: Double
-)
-
 data class ReportState(
     val description: String = "",
     val category: String = "",
     val customCategory: String = "",
     val selectedPhotos: List<Uri> = emptyList(),
     val customLocation: String = "",
-    val isUsingCustomLocation: Boolean = true, // Default to custom location
-    val location: LocationData? = null,
     val isLoading: Boolean = false,
     val error: String? = null
 )
@@ -85,14 +78,6 @@ class ReportViewModel : ViewModel() {
         _state.update { it.copy(customLocation = location) }
     }
 
-    fun toggleLocationInputMethod() {
-        _state.update { it.copy(isUsingCustomLocation = !it.isUsingCustomLocation) }
-    }
-
-    fun onLocationSelected(latitude: Double, longitude: Double) {
-        _state.update { it.copy(location = LocationData(latitude, longitude)) }
-    }
-
     fun onPhotoSelected(uri: Uri) {
         _state.update { currentState ->
             currentState.copy(
@@ -128,10 +113,8 @@ class ReportViewModel : ViewModel() {
                 errors.add("Please enter a custom category")
             currentState.selectedPhotos.isEmpty() ->
                 errors.add("Please attach at least one photo")
-            currentState.isUsingCustomLocation && currentState.customLocation.isBlank() ->
+            currentState.customLocation.isBlank() ->
                 errors.add("Please provide a location description")
-            !currentState.isUsingCustomLocation && currentState.location == null ->
-                errors.add("Please select a location on the map")
         }
 
         if (errors.isNotEmpty()) {
@@ -174,10 +157,10 @@ class ReportViewModel : ViewModel() {
                 currentState.customCategory
             else
                 null,
-            latitude = if (currentState.isUsingCustomLocation) null else currentState.location?.latitude,
-            longitude = if (currentState.isUsingCustomLocation) null else currentState.location?.longitude,
-            customLocation = if (currentState.isUsingCustomLocation) currentState.customLocation else null,
-            isUsingCustomLocation = currentState.isUsingCustomLocation,
+            latitude = null, // Always null since we're using custom location only
+            longitude = null, // Always null since we're using custom location only
+            customLocation = currentState.customLocation,
+            isUsingCustomLocation = true, // Always true since we're using custom location only
             userEmail = userEmail,
             userName = userName
         )
