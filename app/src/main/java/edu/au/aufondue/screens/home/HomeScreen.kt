@@ -1,5 +1,5 @@
 // Location: app/src/main/java/edu/au/aufondue/screens/home/HomeScreen.kt
-// UPDATE THIS EXISTING FILE - REPLACE ALL CONTENT
+// COMPLETE UPDATED FILE
 
 package edu.au.aufondue.screens.home
 
@@ -68,15 +68,12 @@ fun HomeScreen(
     val username = userPreferences.getUsername() ?: stringResource(R.string.nav_profile)
     val userEmail = userPreferences.getUserEmail() ?: ""
 
-    // Time-based greeting using string resources
-    val greeting = remember {
-        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-        when (hour) {
-            in 0..11 -> stringResource(R.string.good_morning)
-            in 12..16 -> stringResource(R.string.good_afternoon)
-            in 17..20 -> stringResource(R.string.good_evening)
-            else -> stringResource(R.string.good_night)
-        }
+    // Time-based greeting using string resources - moved outside remember
+    val greeting = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
+        in 0..11 -> stringResource(R.string.good_morning)
+        in 12..16 -> stringResource(R.string.good_afternoon)
+        in 17..20 -> stringResource(R.string.good_evening)
+        else -> stringResource(R.string.good_night)
     }
 
     // Generate avatar URL (using the same method as ProfileViewModel)
@@ -89,8 +86,14 @@ fun HomeScreen(
     // Get theme colors outside remember
     val primaryColor = MaterialTheme.colorScheme.primary
 
+    // Get string resources outside remember block
+    val totalReportsLabel = stringResource(R.string.total_reports)
+    val pendingLabel = stringResource(R.string.pending)
+    val inProgressLabel = stringResource(R.string.in_progress)
+    val completedLabel = stringResource(R.string.completed)
+
     // Calculate quick stats from current data
-    val quickStats = remember(state.submittedReports, primaryColor) {
+    val quickStats = remember(state.submittedReports, primaryColor, totalReportsLabel, pendingLabel, inProgressLabel, completedLabel) {
         val reports = state.submittedReports
         val totalReports = reports.size
         val pendingReports = reports.count { it.status == "PENDING" }
@@ -99,25 +102,25 @@ fun HomeScreen(
 
         listOf(
             QuickStatCard(
-                title = stringResource(R.string.total_reports),
+                title = totalReportsLabel,
                 count = totalReports,
                 icon = Icons.Default.Assignment,
                 color = primaryColor
             ),
             QuickStatCard(
-                title = stringResource(R.string.pending),
+                title = pendingLabel,
                 count = pendingReports,
                 icon = Icons.Default.Pending,
                 color = Color(0xFFFFA000)
             ),
             QuickStatCard(
-                title = stringResource(R.string.in_progress),
+                title = inProgressLabel,
                 count = inProgressReports,
                 icon = Icons.Default.HourglassEmpty,
                 color = Color(0xFF2196F3)
             ),
             QuickStatCard(
-                title = stringResource(R.string.completed),
+                title = completedLabel,
                 count = completedReports,
                 icon = Icons.Default.CheckCircle,
                 color = Color(0xFF4CAF50)

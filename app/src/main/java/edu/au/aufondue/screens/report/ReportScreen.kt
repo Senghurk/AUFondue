@@ -1,5 +1,5 @@
 // Location: app/src/main/java/edu/au/aufondue/screens/report/ReportScreen.kt
-// UPDATE THIS EXISTING FILE - REPLACE ALL CONTENT
+// COMPLETE UPDATED FILE
 
 package edu.au.aufondue.screens.report
 
@@ -63,14 +63,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
-import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.*
 import edu.au.aufondue.R
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -161,6 +157,9 @@ fun ReportScreen(
             position.target.longitude
         )
     }
+
+    // Get string resources for categories
+    val categoryCustom = stringResource(R.string.category_custom)
 
     if (showAttachmentDialog) {
         AlertDialog(
@@ -278,7 +277,7 @@ fun ReportScreen(
                     if (state.isUsingCustomLocation) {
                         OutlinedTextField(
                             value = state.customLocation,
-                            onValueChange = viewModel.onCustomLocationChange,
+                            onValueChange = viewModel::onCustomLocationChange,
                             modifier = Modifier.fillMaxWidth(),
                             placeholder = { Text(stringResource(R.string.enter_location_description)) },
                             minLines = 2
@@ -347,13 +346,13 @@ fun ReportScreen(
                 }
 
                 AnimatedVisibility(
-                    visible = state.category == stringResource(R.string.category_custom),
+                    visible = state.category == categoryCustom,
                     enter = fadeIn() + expandVertically(),
                     exit = fadeOut() + shrinkVertically()
                 ) {
                     OutlinedTextField(
                         value = state.customCategory,
-                        onValueChange = viewModel.onCustomCategoryChange,
+                        onValueChange = viewModel::onCustomCategoryChange,
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = { Text(stringResource(R.string.enter_custom_category)) }
                     )

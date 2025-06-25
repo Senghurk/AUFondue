@@ -1,5 +1,5 @@
 // Location: app/src/main/java/edu/au/aufondue/screens/notification/NotificationScreen.kt
-// UPDATE THIS EXISTING FILE - REPLACE ALL CONTENT
+// COMPLETE UPDATED FILE
 
 package edu.au.aufondue.screens.notification
 
@@ -139,15 +139,20 @@ fun NotificationScreen(
                     }
                 }
                 else -> {
+                    // Get the string resources outside the groupBy function
+                    val newReportLabel = stringResource(R.string.new_report)
+                    val thisMonthLabel = stringResource(R.string.this_month)
+                    val yesterdayLabel = stringResource(R.string.yesterday)
+
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
                     ) {
                         val groupedNotifications = notifications.groupBy { notification ->
                             when {
-                                System.currentTimeMillis() - notification.timestamp < 24 * 60 * 60 * 1000 -> stringResource(R.string.new_report)
-                                System.currentTimeMillis() - notification.timestamp < 7 * 24 * 60 * 60 * 1000 -> stringResource(R.string.this_month)
-                                else -> stringResource(R.string.yesterday)
+                                System.currentTimeMillis() - notification.timestamp < 24 * 60 * 60 * 1000 -> newReportLabel
+                                System.currentTimeMillis() - notification.timestamp < 7 * 24 * 60 * 60 * 1000 -> thisMonthLabel
+                                else -> yesterdayLabel
                             }
                         }
 

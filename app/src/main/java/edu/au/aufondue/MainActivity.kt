@@ -1,6 +1,3 @@
-// Location: app/src/main/java/edu/au/aufondue/MainActivity.kt
-// UPDATE THIS EXISTING FILE - REPLACE THE NAVIGATION SECTION
-
 package edu.au.aufondue
 
 import android.content.Context
@@ -184,6 +181,8 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun attachBaseContext(newBase: Context?) {
-        super.attachBaseContext(LanguageManager.setLocale(newBase ?: this, LanguageManager.getSavedLanguage(newBase ?: this)))
+        val context = newBase ?: this
+        val updatedContext = LanguageManager.setLocale(context, LanguageManager.getSavedLanguage(context))
+        super.attachBaseContext(updatedContext)
     }
 }

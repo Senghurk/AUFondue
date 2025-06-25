@@ -1,6 +1,3 @@
-// Location: app/src/main/java/edu/au/aufondue/utils/LanguageManager.kt
-// THIS IS A NEW FILE - CREATE THIS FILE
-
 package edu.au.aufondue.utils
 
 import android.content.Context
@@ -15,9 +12,9 @@ object LanguageManager {
     const val ENGLISH = "en"
     const val THAI = "th"
 
-    fun setLocale(context: Context, languageCode: String) {
+    fun setLocale(context: Context, languageCode: String): Context {
         saveLanguagePreference(context, languageCode)
-        updateResources(context, languageCode)
+        return updateResources(context, languageCode)
     }
 
     fun getSelectedLanguage(context: Context): String {
@@ -25,12 +22,22 @@ object LanguageManager {
         return prefs.getString(KEY_LANGUAGE, ENGLISH) ?: ENGLISH // Default to English
     }
 
+    // Add the missing methods
+    fun applyLanguage(context: Context) {
+        val savedLanguage = getSavedLanguage(context)
+        updateResources(context, savedLanguage)
+    }
+
+    fun getSavedLanguage(context: Context): String {
+        return getSelectedLanguage(context)
+    }
+
     private fun saveLanguagePreference(context: Context, languageCode: String) {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
         prefs.edit().putString(KEY_LANGUAGE, languageCode).apply()
     }
 
-    private fun updateResources(context: Context, languageCode: String) {
+    private fun updateResources(context: Context, languageCode: String): Context {
         val locale = Locale(languageCode)
         Locale.setDefault(locale)
 
@@ -38,8 +45,7 @@ object LanguageManager {
         val config: Configuration = resources.configuration
         config.setLocale(locale)
 
-        context.createConfigurationContext(config)
-        resources.updateConfiguration(config, resources.displayMetrics)
+        return context.createConfigurationContext(config)
     }
 
     fun getDisplayName(languageCode: String): String {
