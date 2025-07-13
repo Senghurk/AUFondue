@@ -14,6 +14,9 @@ fun Project.getLocalProperty(key: String, defaultValue: String = ""): String {
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+
+    // Add the Google services Gradle plugin
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -107,6 +110,12 @@ dependencies {
     implementation(composeBom)
     testImplementation(composeBom)
     androidTestImplementation(composeBom)
+    // Import the BoM for the Firebase platform
+    implementation(platform("com.google.firebase:firebase-bom:32.5.0"))
+
+    // Add the dependency for the Firebase Authentication library
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation("com.google.firebase:firebase-auth")
 
     // Material 3
     implementation("androidx.compose.material3:material3:1.3.1")

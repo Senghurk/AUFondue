@@ -16,7 +16,11 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -28,6 +32,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import coil3.ImageLoader
+import edu.au.aufondue.auth.AuthManager
 import edu.au.aufondue.navigation.Screen
 import edu.au.aufondue.navigation.getBottomNavigationItems
 import edu.au.aufondue.screens.home.HomeScreen
@@ -55,6 +60,17 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
+
+                // Check authentication status
+                var isUserSignedIn by remember { mutableStateOf(false) }
+                var isCheckingAuth by remember { mutableStateOf(true) }
+
+                // Check if user is already signed in when app starts
+                LaunchedEffect(Unit) {
+                    val authManager = AuthManager.getInstance(this@MainActivity)
+                    isUserSignedIn = authManager.isSignedIn()
+                    isCheckingAuth = false
+                }
 
                 val shouldShowBottomBar = currentRoute in setOf(
                     Screen.Home.route,
@@ -107,13 +123,21 @@ class MainActivity : ComponentActivity() {
                     }
                 ) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding)) {
+                        // Determine start destination based on auth status
+                        val startDestination = if (!isCheckingAuth) {
+                            if (isUserSignedIn) Screen.Home.route else Screen.Login.route
+                        } else {
+                            Screen.Login.route // Show login while checking
+                        }
+
                         NavHost(
                             navController = navController,
-                            startDestination = Screen.Login.route
+                            startDestination = startDestination
                         ) {
                             composable(Screen.Login.route) {
                                 LoginScreen(
                                     onLoginSuccess = {
+                                        isUserSignedIn = true
                                         navController.navigate(Screen.Home.route) {
                                             popUpTo(Screen.Login.route) { inclusive = true }
                                         }
@@ -133,6 +157,7 @@ class MainActivity : ComponentActivity() {
                             composable(Screen.Profile.route) {
                                 ProfileScreen(
                                     onSignOut = {
+                                        isUserSignedIn = false
                                         navController.navigate(Screen.Login.route) {
                                             popUpTo(0) { inclusive = true }
                                         }

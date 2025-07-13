@@ -1,9 +1,7 @@
-// Location: app/src/main/java/edu/au/aufondue/screens/profile/ProfileScreen.kt
-// UPDATE THIS EXISTING FILE - REPLACE ALL CONTENT
-
 package edu.au.aufondue.screens.profile
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -37,6 +35,7 @@ fun ProfileScreen(
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
     var showLanguageDialog by remember { mutableStateOf(false) }
+    var showDeleteAccountDialog by remember { mutableStateOf(false) }
 
     // Initialize avatar on first launch
     LaunchedEffect(Unit) {
@@ -116,6 +115,26 @@ fun ProfileScreen(
             textAlign = TextAlign.Center
         )
 
+        // Firebase Authentication Status
+        if (state.isSignedInWithFirebase) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFF4CAF50).copy(alpha = 0.1f)
+                )
+            ) {
+                Text(
+                    text = "✓ Authenticated with Firebase",
+                    modifier = Modifier.padding(12.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF4CAF50),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
 
         // Update Avatar Button
@@ -179,6 +198,22 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
+        // Delete Account Button (only show if signed in with Firebase)
+        if (state.isSignedInWithFirebase) {
+            Button(
+                onClick = { showDeleteAccountDialog = true },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text("Delete Account")
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
         // Sign Out Button
         Button(
             onClick = { viewModel.signOut(onSignOut) },
@@ -200,6 +235,44 @@ fun ProfileScreen(
                 showLanguageDialog = false
             },
             onDismiss = { showLanguageDialog = false }
+        )
+    }
+
+    // Delete Account Confirmation Dialog
+    if (showDeleteAccountDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteAccountDialog = false },
+            title = { Text("Delete Account") },
+            text = {
+                Text("Are you sure you want to delete your account? This action cannot be undone and will permanently delete all your data.")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteAccount(
+                            onSuccess = {
+                                showDeleteAccountDialog = false
+                                Toast.makeText(context, "Account deleted successfully", Toast.LENGTH_SHORT).show()
+                                onSignOut()
+                            },
+                            onError = { error ->
+                                showDeleteAccountDialog = false
+                                Toast.makeText(context, "Error deleting account: $error", Toast.LENGTH_LONG).show()
+                            }
+                        )
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteAccountDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
         )
     }
 }

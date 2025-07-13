@@ -1,6 +1,3 @@
-// Location: app/src/main/java/edu/au/aufondue/screens/profile/ProfileViewModel.kt
-// UPDATE THIS EXISTING FILE - REPLACE ALL CONTENT
-
 package edu.au.aufondue.screens.profile
 
 import android.app.Application
@@ -24,7 +21,8 @@ data class ProfileState(
     val email: String = "",
     val avatarUrl: String = "",
     val notificationsEnabled: Boolean = true,
-    val selectedLanguage: String = LanguageManager.ENGLISH
+    val selectedLanguage: String = LanguageManager.ENGLISH,
+    val isSignedInWithFirebase: Boolean = false
 )
 
 class ProfileViewModel(application: Application) : AndroidViewModel(application) {
@@ -46,20 +44,45 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    // Get user info from UserPreferences instead of Microsoft account
-                    val prefs = UserPreferences.getInstance(getApplication())
-                    val email = prefs.getUserEmail() ?: ""
-                    val displayName = prefs.getUsername() ?: email.split("@").firstOrNull() ?: ""
+                    val authMgr = authManager
+                    val firebaseUser = authMgr?.getCurrentUser()
 
-                    // Get saved language preference
-                    val savedLanguage = LanguageManager.getSelectedLanguage(getApplication())
+                    if (firebaseUser != null) {
+                        // User is signed in with Firebase
+                        val email = firebaseUser.email ?: ""
+                        val displayName = firebaseUser.displayName ?: email.split("@").firstOrNull() ?: ""
 
-                    withContext(Dispatchers.Main) {
-                        _state.value = _state.value.copy(
-                            displayName = displayName,
-                            email = email,
-                            selectedLanguage = savedLanguage
-                        )
+                        // Also update UserPreferences to keep local data in sync
+                        UserPreferences.getInstance(getApplication()).saveUserInfo(email, displayName)
+
+                        // Get saved language preference
+                        val savedLanguage = LanguageManager.getSelectedLanguage(getApplication())
+
+                        withContext(Dispatchers.Main) {
+                            _state.value = _state.value.copy(
+                                displayName = displayName,
+                                email = email,
+                                selectedLanguage = savedLanguage,
+                                isSignedInWithFirebase = true
+                            )
+                        }
+                    } else {
+                        // Fall back to UserPreferences (shouldn't happen in normal flow)
+                        val prefs = UserPreferences.getInstance(getApplication())
+                        val email = prefs.getUserEmail() ?: ""
+                        val displayName = prefs.getUsername() ?: email.split("@").firstOrNull() ?: ""
+
+                        // Get saved language preference
+                        val savedLanguage = LanguageManager.getSelectedLanguage(getApplication())
+
+                        withContext(Dispatchers.Main) {
+                            _state.value = _state.value.copy(
+                                displayName = displayName,
+                                email = email,
+                                selectedLanguage = savedLanguage,
+                                isSignedInWithFirebase = false
+                            )
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -117,11 +140,31 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    authManager?.signOut(onSignOutComplete)
+                    authManager?.signOut {
+                        // This callback runs after Firebase sign out completes
+                        onSignOutComplete()
+                    }
                 }
             } catch (e: Exception) {
                 Log.e("ProfileViewModel", "Error signing out", e)
+                // Still call the completion callback even if there's an error
                 onSignOutComplete()
+            }
+        }
+    }
+
+    fun deleteAccount(onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                authManager?.deleteAccount(
+                    onSuccess = onSuccess,
+                    onError = { exception ->
+                        onError(exception.message ?: "Failed to delete account")
+                    }
+                )
+            } catch (e: Exception) {
+                Log.e("ProfileViewModel", "Error deleting account", e)
+                onError(e.message ?: "An error occurred while deleting account")
             }
         }
     }
