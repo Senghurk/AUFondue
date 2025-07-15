@@ -52,11 +52,6 @@ class AuthManager private constructor(private val context: Context) {
     ) {
         coroutineScope.launch {
             try {
-                // Validate email domain
-                if (!email.endsWith("@au.edu")) {
-                    onError(Exception("Only AU email addresses are allowed"))
-                    return@launch
-                }
 
                 val result = auth.signInWithEmailAndPassword(email, password).await()
                 val user = result.user
@@ -108,11 +103,6 @@ class AuthManager private constructor(private val context: Context) {
     ) {
         coroutineScope.launch {
             try {
-                // Validate email domain
-                if (!email.endsWith("@au.edu")) {
-                    onError(Exception("Only AU email addresses are allowed"))
-                    return@launch
-                }
 
                 val result = auth.createUserWithEmailAndPassword(email, password).await()
                 val user = result.user
@@ -163,10 +153,6 @@ class AuthManager private constructor(private val context: Context) {
     ) {
         coroutineScope.launch {
             try {
-                if (!email.endsWith("@au.edu")) {
-                    onError(Exception("Only AU email addresses are allowed"))
-                    return@launch
-                }
 
                 auth.sendPasswordResetEmail(email).await()
                 onSuccess()

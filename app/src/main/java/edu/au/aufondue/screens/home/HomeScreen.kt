@@ -488,12 +488,6 @@ private fun EmptyReportsSection(onNavigateToReport: () -> Unit) {
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyLarge
             )
-            Button(
-                onClick = onNavigateToReport,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(stringResource(R.string.submit_a_report))
-            }
         }
     }
 }

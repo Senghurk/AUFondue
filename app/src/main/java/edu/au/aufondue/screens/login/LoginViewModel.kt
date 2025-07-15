@@ -1,35 +1,40 @@
 package edu.au.aufondue.screens.login
 
-import android.content.Context
+import android.app.Application
 import android.util.Log
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.AndroidViewModel
 import edu.au.aufondue.auth.AuthManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
 data class LoginState(
     val email: String = "",
     val password: String = "",
-    val fullName: String = "",
+    val firstName: String = "",
+    val lastName: String = "",
+    val isSignUp: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null,
-    val loginSuccess: Boolean = false,
-    val isSignUp: Boolean = false,
-    val passwordVisible: Boolean = false
+    val loginSuccess: Boolean = false
 )
 
-class LoginViewModel : ViewModel() {
+class LoginViewModel(application: Application) : AndroidViewModel(application) {
     private val _state = MutableStateFlow(LoginState())
     val state: StateFlow<LoginState> = _state.asStateFlow()
 
     private var authManager: AuthManager? = null
-    private val TAG = "LoginViewModel"
 
-    fun initialize(context: Context) {
-        authManager = AuthManager.getInstance(context)
+    companion object {
+        private const val TAG = "LoginViewModel"
+    }
+
+    init {
+        initializeAuth()
+    }
+
+    private fun initializeAuth() {
+        authManager = AuthManager.getInstance(getApplication())
     }
 
     /**
@@ -53,28 +58,29 @@ class LoginViewModel : ViewModel() {
     }
 
     /**
-     * Update full name field
+     * Update first name field
      */
-    fun updateFullName(fullName: String) {
+    fun updateFirstName(firstName: String) {
         _state.value = _state.value.copy(
-            fullName = fullName,
+            firstName = firstName,
             error = null
         )
     }
 
     /**
-     * Toggle password visibility
+     * Update last name field
      */
-    fun togglePasswordVisibility() {
+    fun updateLastName(lastName: String) {
         _state.value = _state.value.copy(
-            passwordVisible = !_state.value.passwordVisible
+            lastName = lastName,
+            error = null
         )
     }
 
     /**
      * Sign in with email and password
      */
-    fun signInWithEmail() {
+    fun signIn() {
         val authMgr = authManager
         if (authMgr == null) {
             _state.value = _state.value.copy(
@@ -129,7 +135,8 @@ class LoginViewModel : ViewModel() {
         }
 
         val currentState = _state.value
-        if (currentState.email.isEmpty() || currentState.password.isEmpty() || currentState.fullName.isEmpty()) {
+        if (currentState.email.isEmpty() || currentState.password.isEmpty() ||
+            currentState.firstName.isEmpty() || currentState.lastName.isEmpty()) {
             _state.value = _state.value.copy(
                 error = "Please fill in all fields"
             )
@@ -149,10 +156,13 @@ class LoginViewModel : ViewModel() {
             error = null
         )
 
+        // Combine first and last name for display name
+        val displayName = "${currentState.firstName.trim()} ${currentState.lastName.trim()}"
+
         authMgr.createAccountWithEmailPassword(
             email = currentState.email.trim(),
             password = currentState.password,
-            displayName = currentState.fullName.trim(),
+            displayName = displayName,
             onSuccess = { token ->
                 Log.d(TAG, "Account creation successful")
                 _state.value = _state.value.copy(
@@ -233,66 +243,40 @@ class LoginViewModel : ViewModel() {
                     exception.message?.contains("sign-in provider is disabled") == true ->
                 "Email authentication is currently disabled. Please contact support."
 
-            // Email validation errors
+            // Invalid email
             exception.message?.contains("badly formatted") == true ||
-                    exception.message?.contains("invalid email") == true ->
-                "Please enter a valid email address"
-
-            // User not found
-            exception.message?.contains("There is no user record") == true ||
-                    exception.message?.contains("user not found") == true ->
-                "No account found with this email address"
+                    exception.message?.contains("invalid-email") == true ->
+                "Please enter a valid email address."
 
             // Wrong password
             exception.message?.contains("password is invalid") == true ||
-                    exception.message?.contains("wrong password") == true ->
-                "Incorrect password"
+                    exception.message?.contains("wrong-password") == true ->
+                "Incorrect password. Please try again."
 
-            // Account already exists
-            exception.message?.contains("email address is already") == true ||
-                    exception.message?.contains("already in use") == true ->
-                "An account with this email already exists"
+            // User not found
+            exception.message?.contains("no user record") == true ||
+                    exception.message?.contains("user-not-found") == true ->
+                "No account found with this email address."
+
+            // Email already in use
+            exception.message?.contains("email address is already in use") == true ||
+                    exception.message?.contains("email-already-in-use") == true ->
+                "An account with this email already exists."
 
             // Weak password
-            exception.message?.contains("weak-password") == true ||
-                    exception.message?.contains("password should be at least") == true ->
-                "Password should be at least 6 characters"
-
-            // Network errors
-            exception.message?.contains("network error") == true ||
-                    exception.message?.contains("timeout") == true ->
-                "Network error. Please check your connection"
-
-            // Custom domain validation
-            exception.message?.contains("AU email") == true ->
-                "Please use your AU email address (@au.edu)"
+            exception.message?.contains("weak-password") == true ->
+                "Password is too weak. Please choose a stronger password."
 
             // Too many requests
-            exception.message?.contains("too many requests") == true ->
-                "Too many failed attempts. Please try again later"
+            exception.message?.contains("too-many-requests") == true ->
+                "Too many failed attempts. Please try again later."
 
-            // User disabled
-            exception.message?.contains("user disabled") == true ->
-                "This account has been disabled. Please contact support"
+            // Network error
+            exception.message?.contains("network") == true ->
+                "Network error. Please check your internet connection."
 
-            // Email not verified
-            exception.message?.contains("email not verified") == true ->
-                "Please verify your email address before signing in"
-
-            // Default case
-            else -> {
-                Log.e(TAG, "Unhandled Firebase error: ${exception.message}")
-                exception.message ?: "Authentication failed. Please try again"
-            }
+            // Default error message
+            else -> exception.message ?: "An error occurred during authentication."
         }
-    }
-
-    fun clearError() {
-        _state.value = _state.value.copy(error = null)
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        authManager = null
     }
 }
