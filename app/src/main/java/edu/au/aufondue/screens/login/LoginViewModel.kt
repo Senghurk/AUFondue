@@ -1,132 +1,216 @@
 package edu.au.aufondue.screens.login
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import edu.au.aufondue.auth.AuthManager
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 data class LoginState(
+    val email: String = "",
+    val password: String = "",
+    val fullName: String = "",
     val isLoading: Boolean = false,
     val error: String? = null,
-    val isSignUp: Boolean = false
+    val loginSuccess: Boolean = false,
+    val isSignUp: Boolean = false,
+    val passwordVisible: Boolean = false
 )
 
 class LoginViewModel : ViewModel() {
     private val _state = MutableStateFlow(LoginState())
-    val state = _state.asStateFlow()
-
-    private val _navigationEvent = MutableStateFlow(false)
-    val navigationEvent = _navigationEvent.asStateFlow()
+    val state: StateFlow<LoginState> = _state.asStateFlow()
 
     private var authManager: AuthManager? = null
+    private val TAG = "LoginViewModel"
 
-    fun initializeAuth(context: Context) {
-        if (authManager == null) {
-            authManager = AuthManager.getInstance(context)
+    fun initialize(context: Context) {
+        authManager = AuthManager.getInstance(context)
+    }
 
-            // Check if user is already signed in
-            if (authManager?.isSignedIn() == true) {
-                _navigationEvent.value = true
-            }
-        }
+    /**
+     * Update email field
+     */
+    fun updateEmail(email: String) {
+        _state.value = _state.value.copy(
+            email = email,
+            error = null
+        )
+    }
+
+    /**
+     * Update password field
+     */
+    fun updatePassword(password: String) {
+        _state.value = _state.value.copy(
+            password = password,
+            error = null
+        )
+    }
+
+    /**
+     * Update full name field
+     */
+    fun updateFullName(fullName: String) {
+        _state.value = _state.value.copy(
+            fullName = fullName,
+            error = null
+        )
+    }
+
+    /**
+     * Toggle password visibility
+     */
+    fun togglePasswordVisibility() {
+        _state.value = _state.value.copy(
+            passwordVisible = !_state.value.passwordVisible
+        )
     }
 
     /**
      * Sign in with email and password
      */
-    fun signInWithEmailPassword(email: String, password: String) {
-        viewModelScope.launch {
-            try {
-                _state.value = _state.value.copy(isLoading = true, error = null)
+    fun signInWithEmail() {
+        val authMgr = authManager
+        if (authMgr == null) {
+            _state.value = _state.value.copy(
+                error = "Authentication service not initialized"
+            )
+            return
+        }
 
-                authManager?.signInWithEmailPassword(
-                    email = email.trim(),
-                    password = password,
-                    onSuccess = { token ->
-                        _state.value = _state.value.copy(isLoading = false)
-                        _navigationEvent.value = true
-                    },
-                    onError = { exception ->
-                        _state.value = _state.value.copy(
-                            isLoading = false,
-                            error = getFirebaseErrorMessage(exception)
-                        )
-                    }
-                )
-            } catch (e: Exception) {
+        val currentState = _state.value
+        if (currentState.email.isEmpty() || currentState.password.isEmpty()) {
+            _state.value = _state.value.copy(
+                error = "Please fill in all fields"
+            )
+            return
+        }
+
+        _state.value = _state.value.copy(
+            isLoading = true,
+            error = null
+        )
+
+        authMgr.signInWithEmailPassword(
+            email = currentState.email.trim(),
+            password = currentState.password,
+            onSuccess = { token ->
+                Log.d(TAG, "Email sign-in successful")
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    error = e.message ?: "An unexpected error occurred"
+                    loginSuccess = true
+                )
+            },
+            onError = { exception ->
+                Log.e(TAG, "Email sign-in failed", exception)
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = getFirebaseErrorMessage(exception)
                 )
             }
-        }
+        )
     }
 
     /**
      * Create account with email and password
      */
-    fun createAccount(email: String, password: String, displayName: String) {
-        viewModelScope.launch {
-            try {
-                _state.value = _state.value.copy(isLoading = true, error = null)
+    fun createAccount() {
+        val authMgr = authManager
+        if (authMgr == null) {
+            _state.value = _state.value.copy(
+                error = "Authentication service not initialized"
+            )
+            return
+        }
 
-                authManager?.createAccountWithEmailPassword(
-                    email = email.trim(),
-                    password = password,
-                    displayName = displayName.trim(),
-                    onSuccess = { token ->
-                        _state.value = _state.value.copy(isLoading = false)
-                        _navigationEvent.value = true
-                    },
-                    onError = { exception ->
-                        _state.value = _state.value.copy(
-                            isLoading = false,
-                            error = getFirebaseErrorMessage(exception)
-                        )
-                    }
-                )
-            } catch (e: Exception) {
+        val currentState = _state.value
+        if (currentState.email.isEmpty() || currentState.password.isEmpty() || currentState.fullName.isEmpty()) {
+            _state.value = _state.value.copy(
+                error = "Please fill in all fields"
+            )
+            return
+        }
+
+        // Additional validation
+        if (currentState.password.length < 6) {
+            _state.value = _state.value.copy(
+                error = "Password must be at least 6 characters long"
+            )
+            return
+        }
+
+        _state.value = _state.value.copy(
+            isLoading = true,
+            error = null
+        )
+
+        authMgr.createAccountWithEmailPassword(
+            email = currentState.email.trim(),
+            password = currentState.password,
+            displayName = currentState.fullName.trim(),
+            onSuccess = { token ->
+                Log.d(TAG, "Account creation successful")
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    error = e.message ?: "An unexpected error occurred"
+                    loginSuccess = true
+                )
+            },
+            onError = { exception ->
+                Log.e(TAG, "Account creation failed", exception)
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = getFirebaseErrorMessage(exception)
                 )
             }
-        }
+        )
     }
 
     /**
      * Send password reset email
      */
-    fun sendPasswordReset(email: String) {
-        viewModelScope.launch {
-            try {
-                _state.value = _state.value.copy(isLoading = true, error = null)
+    fun sendPasswordReset() {
+        val authMgr = authManager
+        if (authMgr == null) {
+            _state.value = _state.value.copy(
+                error = "Authentication service not initialized"
+            )
+            return
+        }
 
-                authManager?.sendPasswordResetEmail(
-                    email = email.trim(),
-                    onSuccess = {
-                        _state.value = _state.value.copy(
-                            isLoading = false,
-                            error = "Password reset email sent to $email"
-                        )
-                    },
-                    onError = { exception ->
-                        _state.value = _state.value.copy(
-                            isLoading = false,
-                            error = getFirebaseErrorMessage(exception)
-                        )
-                    }
-                )
-            } catch (e: Exception) {
+        val currentState = _state.value
+        if (currentState.email.isEmpty()) {
+            _state.value = _state.value.copy(
+                error = "Please enter your email address"
+            )
+            return
+        }
+
+        _state.value = _state.value.copy(
+            isLoading = true,
+            error = null
+        )
+
+        authMgr.sendPasswordResetEmail(
+            email = currentState.email.trim(),
+            onSuccess = {
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    error = e.message ?: "An unexpected error occurred"
+                    error = "Password reset email sent! Check your inbox."
+                )
+            },
+            onError = { exception ->
+                Log.e(TAG, "Password reset failed", exception)
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = getFirebaseErrorMessage(exception)
                 )
             }
-        }
+        )
     }
 
     /**
@@ -144,21 +228,62 @@ class LoginViewModel : ViewModel() {
      */
     private fun getFirebaseErrorMessage(exception: Exception): String {
         return when {
-            exception.message?.contains("badly formatted") == true ->
+            // Authentication disabled error
+            exception.message?.contains("disabled") == true ||
+                    exception.message?.contains("sign-in provider is disabled") == true ->
+                "Email authentication is currently disabled. Please contact support."
+
+            // Email validation errors
+            exception.message?.contains("badly formatted") == true ||
+                    exception.message?.contains("invalid email") == true ->
                 "Please enter a valid email address"
-            exception.message?.contains("There is no user record") == true ->
+
+            // User not found
+            exception.message?.contains("There is no user record") == true ||
+                    exception.message?.contains("user not found") == true ->
                 "No account found with this email address"
-            exception.message?.contains("password is invalid") == true ->
+
+            // Wrong password
+            exception.message?.contains("password is invalid") == true ||
+                    exception.message?.contains("wrong password") == true ->
                 "Incorrect password"
-            exception.message?.contains("email address is already") == true ->
+
+            // Account already exists
+            exception.message?.contains("email address is already") == true ||
+                    exception.message?.contains("already in use") == true ->
                 "An account with this email already exists"
-            exception.message?.contains("weak-password") == true ->
+
+            // Weak password
+            exception.message?.contains("weak-password") == true ||
+                    exception.message?.contains("password should be at least") == true ->
                 "Password should be at least 6 characters"
-            exception.message?.contains("network error") == true ->
+
+            // Network errors
+            exception.message?.contains("network error") == true ||
+                    exception.message?.contains("timeout") == true ->
                 "Network error. Please check your connection"
+
+            // Custom domain validation
             exception.message?.contains("AU email") == true ->
                 "Please use your AU email address (@au.edu)"
-            else -> exception.message ?: "Authentication failed"
+
+            // Too many requests
+            exception.message?.contains("too many requests") == true ->
+                "Too many failed attempts. Please try again later"
+
+            // User disabled
+            exception.message?.contains("user disabled") == true ->
+                "This account has been disabled. Please contact support"
+
+            // Email not verified
+            exception.message?.contains("email not verified") == true ->
+                "Please verify your email address before signing in"
+
+            // Default case
+            else -> {
+                Log.e(TAG, "Unhandled Firebase error: ${exception.message}")
+                exception.message ?: "Authentication failed. Please try again"
+            }
         }
     }
 
