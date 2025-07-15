@@ -37,7 +37,7 @@ import edu.au.aufondue.navigation.Screen
 import edu.au.aufondue.navigation.getBottomNavigationItems
 import edu.au.aufondue.screens.home.HomeScreen
 import edu.au.aufondue.screens.login.LoginScreen
-import edu.au.aufondue.screens.map.MapScreen
+import edu.au.aufondue.screens.map.CampusMapScreen
 import edu.au.aufondue.screens.notification.NotificationDetailsScreen
 import edu.au.aufondue.screens.notification.NotificationScreen
 import edu.au.aufondue.screens.profile.ProfileScreen
@@ -174,9 +174,13 @@ class MainActivity : ComponentActivity() {
                             }
 
                             composable(Screen.Map.route) {
-                                MapScreen(
+                                CampusMapScreen(
                                     onNavigateBack = {
-                                        navController.popBackStack()
+                                        navController.navigateUp()
+                                    },
+                                    onBuildingClick = { buildingId ->
+                                        // Optional: Navigate to report screen with pre-filled location
+                                        // navController.navigate("${Screen.Report.route}?buildingId=$buildingId")
                                     }
                                 )
                             }

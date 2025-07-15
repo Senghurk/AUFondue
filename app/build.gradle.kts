@@ -143,10 +143,10 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.8.4")
 
     // MAP Dependency
-    implementation("com.google.android.gms:play-services-maps:19.0.0")
-    implementation("com.google.maps.android:maps-compose:6.2.1")
+    //implementation("com.google.android.gms:play-services-maps:19.0.0")
+    //implementation("com.google.maps.android:maps-compose:6.2.1")
 
-    // https://mvnrepository.com/artifact/com.microsoft.identity.client/msal
+//    https://mvnrepository.com/artifact/com.microsoft.identity.client/msal
 //    implementation("com.microsoft.identity.client:msal:5.8.2"){
 //        exclude(group = "com.microsoft.device.display", module = "display-mask")
 //    }
