@@ -74,7 +74,7 @@ object RetrofitClient {
     val DOMAIN = BASE_URL.removeSuffix("/")
 
     // SAS Token for Azure Blob Storage
-    private const val SAS_TOKEN = "sp=racwl&st=2025-02-25T05:25:29Z&se=2025-05-01T13:25:29Z&sv=2022-11-02&sr=c&sig=tLy7KN14KKIju3BkWj3j9WxhTRlFYJZEh404Wfp9lTQ%3D"
+    private const val SAS_TOKEN = "sv=2024-11-04&ss=bfqt&srt=co&sp=rwdlacupiytfx&se=2027-07-16T22:11:38Z&st=2025-07-16T13:56:38Z&spr=https,http&sig=5xb1czmfngshEckXBdlhtw%2BVe%2B5htYpCnXyhPw9tnHk%3D"
     private const val STORAGE_URL = "https://aufondueblob.blob.core.windows.net/aufondue/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {

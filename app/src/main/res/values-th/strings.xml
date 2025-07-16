@@ -12,26 +12,11 @@
     <string name="nav_profile">โปรไฟล์</string>
     <string name="nav_map">แผนที่</string>
 
-    <!-- Profile Screen -->
-    <string name="profile_title">โปรไฟล์</string>
-    <string name="update_avatar">อัปเดตรูปโปรไฟล์</string>
-    <string name="report_issues">รายงานปัญหา</string>
-    <string name="enable_notifications">เปิดการแจ้งเตือน</string>
-    <string name="language">ภาษา</string>
-    <string name="sign_out">ออกจากระบบ</string>
-
-    <!-- Language Selection -->
-    <string name="select_language">เลือกภาษา</string>
-    <string name="language_english">English</string>
-    <string name="language_thai">ไทย</string>
-    <string name="cancel">ยกเลิก</string>
-    <string name="confirm">ยืนยัน</string>
-
     <!-- Login Screen -->
-    <string name="welcome_title">ยินดีต้อนรับสู่ AU Fondue</string>
+    <string name="welcome_to_au_fondue">ยินดีต้อนรับสู่ AU Fondue</string>
     <string name="admin_portal_login">เข้าสู่ระบบผู้ดูแล</string>
     <string name="login_with_microsoft">เข้าสู่ระบบด้วย Microsoft</string>
-    <string name="terms_and_privacy">การเข้าสู่ระบบหมายความว่าคุณยอมรับข้อกำหนดและนโยบายความเป็นส่วนตัวของเรา</string>
+    <string name="by_logging_in">การเข้าสู่ระบบหมายความว่าคุณยอมรับข้อกำหนดและนโยบายความเป็นส่วนตัวของเรา</string>
 
     <!-- Home Screen -->
     <string name="good_morning">สวัสดีตอนเช้า</string>
@@ -47,18 +32,16 @@
     <string name="completed">เสร็จสิ้น</string>
     <string name="your_submitted_reports">รายงานที่คุณส่ง</string>
     <string name="no_reports_yet">คุณยังไม่ได้ส่งรายงานใดๆ</string>
-    <string name="submit_a_report">ส่งรายงาน</string>
-    <string name="create_report">สร้างรายงาน</string>
-    <string name="retry">ลองใหม่</string>
+    <string name="submit_a_report">ส่งรายงานปัญหา</string>
 
     <!-- Report Screen -->
     <string name="report_issue">รายงานปัญหา</string>
-    <string name="enter_description">กรอกรายละเอียด</string>
+    <string name="enter_description">อธิบายปัญหาโดยย่อ</string>
     <string name="attach_photo">แนบรูปภาพ</string>
     <string name="photos_attached">แนบรูปภาพ %1$d รูป</string>
     <string name="select_location">เลือกตำแหน่ง</string>
     <string name="use_custom_location">ใช้ตำแหน่งที่กำหนดเอง</string>
-    <string name="provide_location">ระบุตำแหน่ง</string>
+    <string name="provide_location">กรุณาระบุตำแหน่ง</string>
     <string name="enter_location_description">กรอกรายละเอียดตำแหน่ง</string>
     <string name="selected_location">ตำแหน่งที่เลือก</string>
     <string name="select_category">เลือกหมวดหมู่</string>
@@ -75,12 +58,14 @@
     <string name="category_broken">เสียหาย</string>
     <string name="category_custom">กำหนดเอง</string>
 
+    <!-- Status -->
+    <string name="status">สถานะ</string>
+    <string name="status_pending">รอดำเนินการ</string>
+    <string name="status_in_progress">กำลังดำเนินการ</string>
+    <string name="status_completed">เสร็จสิ้น</string>
+
     <!-- Map Screen -->
     <string name="map_view">มุมมองแผนที่</string>
-    <string name="back">กลับ</string>
-    <string name="close">ปิด</string>
-    <string name="category">หมวดหมู่</string>
-    <string name="status">สถานะ</string>
 
     <!-- Notifications -->
     <string name="notifications">การแจ้งเตือน</string>
@@ -95,15 +80,36 @@
     <string name="issue_details">รายละเอียดปัญหา</string>
     <string name="description">รายละเอียด</string>
     <string name="location">ตำแหน่ง</string>
+    <string name="category">หมวดหมู่</string>
     <string name="reported_by">รายงานโดย</string>
     <string name="report_photos">รูปภาพรายงาน (%1$d)</string>
     <string name="update_from_om">อัปเดตจาก OM</string>
-    <string name="comments">ความคิดเห็น:</string>
+    <string name="comments">ความคิดเห็น</string>
     <string name="no_comments">ไม่มีความคิดเห็น</string>
-    <string name="update_photos">รูปภาพอัปเดต (%1$d):</string>
+    <string name="update_photos">รูปภาพอัปเดต (%1$d)</string>
     <string name="no_photos">ไม่มีรูปภาพ</string>
     <string name="error_loading_image">เกิดข้อผิดพลาดในการโหลดรูปภาพ</string>
     <string name="image_not_available">ไม่มีรูปภาพ</string>
+    <string name="latitude">ละติจูด</string>
+    <string name="longitude">ลองจิจูด</string>
+    <string name="not_specified">ไม่ได้ระบุ</string>
+    <string name="report_photo">รูปภาพรายงาน</string>
+    <string name="update_photo">รูปภาพอัปเดต</string>
+
+    <!-- Profile Screen -->
+    <string name="profile_title">โปรไฟล์</string>
+    <string name="update_avatar">อัปเดตรูปโปรไฟล์</string>
+    <string name="report_issues">รายงานปัญหา</string>
+    <string name="enable_notifications">เปิดการแจ้งเตือน</string>
+    <string name="language">ภาษา</string>
+    <string name="sign_out">ออกจากระบบ</string>
+
+    <!-- Language Selection -->
+    <string name="select_language">เลือกภาษา</string>
+    <string name="language_english">English</string>
+    <string name="language_thai">ไทย</string>
+    <string name="cancel">ยกเลิก</string>
+    <string name="confirm">ยืนยัน</string>
 
     <!-- Time formats -->
     <string name="just_now">เมื่อสักครู่</string>
@@ -119,6 +125,12 @@
     <string name="error_loading_notifications">โหลดการแจ้งเตือนไม่สำเร็จ</string>
 
     <!-- Common -->
+    <string name="back">กลับ</string>
+    <string name="close">ปิด</string>
     <string name="ok">ตกลง</string>
     <string name="loading">กำลังโหลด...</string>
+    <string name="retry">ลองใหม่</string>
+    <string name="failed_to_load">โหลดไม่สำเร็จ</string>
+    <string name="no_data">ไม่มีข้อมูล</string>
+    <string name="create_report">สร้างรายงาน</string>
 </resources>

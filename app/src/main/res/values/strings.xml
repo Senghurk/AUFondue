@@ -23,7 +23,7 @@
     <string name="good_afternoon">Good Afternoon</string>
     <string name="good_evening">Good Evening</string>
     <string name="good_night">Good Night</string>
-    <string name="pending_reports">You have %d pending report%s</string>
+    <string name="pending_reports">You have %1$d pending report%s</string>
     <string name="no_pending_reports">All reports are up to date!</string>
     <string name="quick_overview">Quick Overview</string>
     <string name="total_reports">Total Reports</string>
@@ -36,9 +36,9 @@
 
     <!-- Report Screen -->
     <string name="report_issue">Report Issue</string>
-    <string name="enter_description">Describe shortly about the issue</string>
+    <string name="enter_description">Describe the issue briefly</string>
     <string name="attach_photo">Attach Photo</string>
-    <string name="photos_attached">%d photos attached</string>
+    <string name="photos_attached">%1$d photos attached</string>
     <string name="select_location">Select Location</string>
     <string name="provide_location">Provide Location</string>
     <string name="use_custom_location">Use Custom Location</string>
@@ -67,7 +67,7 @@
     <!-- Map Screen -->
     <string name="map_view">Map View</string>
 
-    <!-- Notification Screen -->
+    <!-- Notifications -->
     <string name="notifications">Notifications</string>
     <string name="notification_settings">Notification Settings</string>
     <string name="no_notifications">No notifications</string>
@@ -76,14 +76,15 @@
     <string name="yesterday">Yesterday</string>
     <string name="view">View</string>
 
-    <!-- Notification Details -->
+    <!-- Issue Details -->
     <string name="issue_details">Issue Details</string>
     <string name="location">Location</string>
     <string name="category">Category</string>
     <string name="description">Description</string>
-    <string name="report_photos">Report Photos</string>
+    <string name="reported_by">Reported by</string>
+    <string name="report_photos">Report Photos (%1$d)</string>
     <string name="update_from_om">Update from OM</string>
-    <string name="update_photos">Update Photos</string>
+    <string name="update_photos">Update Photos (%1$d)</string>
     <string name="report_photo">Report Photo</string>
     <string name="update_photo">Update Photo</string>
     <string name="error_loading_image">Error loading image</string>
@@ -92,8 +93,11 @@
     <string name="longitude">Longitude</string>
     <string name="not_specified">Not specified</string>
     <string name="comments">Comments</string>
+    <string name="no_comments">No comments</string>
+    <string name="no_photos">No photos</string>
 
     <!-- Profile Screen -->
+    <string name="profile_title">Profile</string>
     <string name="update_avatar">Update Avatar</string>
     <string name="report_issues">Report Issues</string>
     <string name="enable_notifications">Enable Notifications</string>
@@ -103,13 +107,11 @@
     <string name="language_english">English</string>
     <string name="language_thai">ไทย</string>
 
-    <!-- Time -->
+    <!-- Time formats -->
     <string name="just_now">Just now</string>
-    <string name="min_ago">%d min ago</string>
-    <string name="hour_ago">%d hour ago</string>
-    <string name="hours_ago">%d hours ago</string>
-    <string name="day_ago">%d day ago</string>
-    <string name="days_ago">%d days ago</string>
+    <string name="minutes_ago">%1$d minutes ago</string>
+    <string name="hours_ago">%1$d hours ago</string>
+    <string name="days_ago">%1$d days ago</string>
 
     <!-- Common -->
     <string name="back">Back</string>
@@ -124,4 +126,7 @@
     <string name="failed_to_load">Failed to load</string>
     <string name="no_data">No data</string>
     <string name="create_report">Create Report</string>
+    <string name="user_not_logged_in">User not logged in. Please log in first.</string>
+    <string name="failed_to_load_reports">Failed to load reports</string>
+    <string name="error_loading_notifications">Failed to load notifications</string>
 </resources>
