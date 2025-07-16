@@ -69,7 +69,8 @@ class MainActivity : ComponentActivity() {
 
                 // Check authentication status
                 LaunchedEffect(Unit) {
-                    isLoggedIn = AuthManager.isLoggedIn(this@MainActivity)
+                    val authManager = AuthManager.getInstance(this@MainActivity)
+                    isLoggedIn = authManager.isSignedIn()
                     if (isLoggedIn) {
                         // Initialize FCM after checking login status
                         initializeFCM()
@@ -167,13 +168,15 @@ class MainActivity : ComponentActivity() {
 
                                 composable(Screen.Profile.route) {
                                     ProfileScreen(
-                                        onLogout = {
+                                        onSignOut = {
                                             // Remove FCM token before logout
                                             removeFcmTokenFromServer()
-                                            AuthManager.logout(this@MainActivity)
-                                            isLoggedIn = false
-                                        },
-                                        navController = navController
+                                            // Sign out and update login state
+                                            val authManager = AuthManager.getInstance(this@MainActivity)
+                                            authManager.signOut {
+                                                isLoggedIn = false
+                                            }
+                                        }
                                     )
                                 }
 
@@ -203,10 +206,10 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        intent?.let { handleNotificationClick(it) }
+        handleNotificationClick(intent)
     }
 
     override fun attachBaseContext(newBase: Context?) {
@@ -286,11 +289,7 @@ class MainActivity : ComponentActivity() {
         if (navigateToNotifications && issueId != null) {
             Log.d(TAG, "App opened from notification, issue ID: $issueId")
 
-            // You can store this in a shared preference or pass it to your navigation
-            // For now, we'll just log it. The actual navigation should happen in the compose UI
-            // based on checking for pending navigation actions
-
-            // Store the navigation intent
+            // Store the navigation intent for later use
             val sharedPref = getSharedPreferences("au_fondue_prefs", Context.MODE_PRIVATE)
             with(sharedPref.edit()) {
                 putString("pending_navigation_issue_id", issueId)
