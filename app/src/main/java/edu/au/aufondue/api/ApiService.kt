@@ -65,13 +65,13 @@ interface ApiService {
     ): Response<ApiResponse<Void>>
 
     // Add these methods to your existing ApiService interface
-    @POST("users/update-fcm-token")
+    @POST("api/users/update-fcm-token")
     suspend fun updateFcmToken(
         @Query("email") email: String,
         @Query("fcmToken") fcmToken: String
     ): Response<ApiResponse<String>>
 
-    @DELETE("users/remove-fcm-token")
+    @DELETE("api/users/remove-fcm-token")
     suspend fun removeFcmToken(
         @Query("email") email: String
     ): Response<ApiResponse<String>>
