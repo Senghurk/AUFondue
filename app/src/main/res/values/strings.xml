@@ -5,6 +5,12 @@
     <string name="app_tagline">Report and track maintenance issues</string>
 
     <!-- Navigation -->
+    <string name="home">Home</string>
+    <string name="reports">Reports</string>
+    <string name="notifications">Notifications</string>
+    <string name="profile">Profile</string>
+
+    <!-- Bottom Navigation Menu -->
     <string name="nav_home">Home</string>
     <string name="nav_history">History</string>
     <string name="nav_add">Add</string>
@@ -13,12 +19,36 @@
     <string name="nav_profile">Profile</string>
 
     <!-- Login Screen -->
+    <string name="login">Login</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="enter_email">Enter your email</string>
+    <string name="enter_password">Enter your password</string>
+    <string name="login_error">Login failed. Please check your credentials.</string>
+    <string name="login_success">Login successful!</string>
+    <string name="logging_in">Logging in...</string>
     <string name="welcome_to_au_fondue">Welcome to AU Fondue</string>
     <string name="admin_portal_login">Admin Portal Login</string>
     <string name="login_with_microsoft">Log in with Microsoft</string>
     <string name="by_logging_in">By logging in, you agree to our Terms and Privacy Policy</string>
 
+    <!-- Register Screen -->
+    <string name="register">Register</string>
+    <string name="username">Username</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="enter_username">Enter your username</string>
+    <string name="enter_confirm_password">Confirm your password</string>
+    <string name="register_error">Registration failed. Please try again.</string>
+    <string name="register_success">Registration successful!</string>
+    <string name="registering">Registering...</string>
+    <string name="already_have_account">Already have an account?</string>
+    <string name="dont_have_account">Don\'t have an account?</string>
+
     <!-- Home Screen -->
+    <string name="welcome">Welcome</string>
+    <string name="recent_reports">Recent Reports</string>
+    <string name="no_reports">No reports available</string>
+    <string name="view_all_reports">View All Reports</string>
     <string name="good_morning">Good Morning</string>
     <string name="good_afternoon">Good Afternoon</string>
     <string name="good_evening">Good Evening</string>
@@ -36,20 +66,25 @@
 
     <!-- Report Screen -->
     <string name="report_issue">Report Issue</string>
-    <string name="enter_description">Describe the issue briefly</string>
+    <string name="description">Description</string>
+    <string name="category">Category</string>
+    <string name="photos">Photos</string>
+    <string name="location">Location</string>
+    <string name="submit">Submit</string>
+    <string name="enter_description">Enter a description of the issue</string>
+    <string name="select_category">Select a category</string>
+    <string name="enter_location">Enter the location</string>
+    <string name="enter_location_description">Enter location description</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="choose_from_gallery">Choose from Gallery</string>
+    <string name="enter_custom_category">Enter custom category</string>
     <string name="attach_photo">Attach Photo</string>
     <string name="photos_attached">%1$d photos attached</string>
     <string name="select_location">Select Location</string>
     <string name="provide_location">Provide Location</string>
     <string name="use_custom_location">Use Custom Location</string>
-    <string name="enter_location_description">Enter location description</string>
     <string name="selected_location">Selected Location</string>
-    <string name="select_category">Select Category</string>
-    <string name="enter_custom_category">Enter custom category</string>
-    <string name="submit">Submit</string>
     <string name="add_photo">Add Photo</string>
-    <string name="take_photo">Take Photo</string>
-    <string name="choose_from_gallery">Choose from Gallery</string>
 
     <!-- Categories -->
     <string name="category_cracked">Cracked</string>
@@ -58,33 +93,23 @@
     <string name="category_broken">Broken</string>
     <string name="category_custom">Custom</string>
 
-    <!-- Status -->
-    <string name="status">Status</string>
+    <!-- Reports List Screen -->
+    <string name="all_reports">All Reports</string>
+    <string name="no_reports_found">No reports found</string>
+    <string name="pull_to_refresh">Pull to refresh</string>
     <string name="status_pending">Pending</string>
     <string name="status_in_progress">In Progress</string>
+    <string name="status_resolved">Resolved</string>
     <string name="status_completed">Completed</string>
 
-    <!-- Map Screen -->
-    <string name="map_view">Map View</string>
-
-    <!-- Notifications -->
-    <string name="notifications">Notifications</string>
-    <string name="notification_settings">Notification Settings</string>
-    <string name="no_notifications">No notifications</string>
-    <string name="new_report">New Report</string>
-    <string name="this_month">This Month</string>
-    <string name="yesterday">Yesterday</string>
-    <string name="view">View</string>
-
-    <!-- Issue Details -->
-    <string name="issue_details">Issue Details</string>
-    <string name="location">Location</string>
-    <string name="category">Category</string>
-    <string name="description">Description</string>
+    <!-- Report Detail Screen -->
+    <string name="report_details">Report Details</string>
     <string name="reported_by">Reported by</string>
-    <string name="report_photos">Report Photos (%1$d)</string>
+    <string name="reported_on">Reported on</string>
+    <string name="status">Status</string>
+    <string name="report_photos">Report Photos</string>
     <string name="update_from_om">Update from OM</string>
-    <string name="update_photos">Update Photos (%1$d)</string>
+    <string name="update_photos">Update Photos</string>
     <string name="report_photo">Report Photo</string>
     <string name="update_photo">Update Photo</string>
     <string name="error_loading_image">Error loading image</string>
@@ -95,6 +120,20 @@
     <string name="comments">Comments</string>
     <string name="no_comments">No comments</string>
     <string name="no_photos">No photos</string>
+
+    <!-- Map Screen -->
+    <string name="map_view">Map View</string>
+
+    <!-- Notifications -->
+    <string name="notification_settings">Notification Settings</string>
+    <string name="no_notifications">No notifications</string>
+    <string name="new_report">New Report</string>
+    <string name="this_month">This Month</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="view">View</string>
+
+    <!-- Issue Details -->
+    <string name="issue_details">Issue Details</string>
 
     <!-- Profile Screen -->
     <string name="profile_title">Profile</string>
@@ -107,11 +146,14 @@
     <string name="language_english">English</string>
     <string name="language_thai">ไทย</string>
 
-    <!-- Time formats -->
+    <!-- Time -->
     <string name="just_now">Just now</string>
+    <string name="min_ago">%d min ago</string>
+    <string name="hour_ago">%d hour ago</string>
+    <string name="hours_ago">%d hours ago</string>
+    <string name="day_ago">%d day ago</string>
+    <string name="days_ago">%d days ago</string>
     <string name="minutes_ago">%1$d minutes ago</string>
-    <string name="hours_ago">%1$d hours ago</string>
-    <string name="days_ago">%1$d days ago</string>
 
     <!-- Common -->
     <string name="back">Back</string>
@@ -129,4 +171,9 @@
     <string name="user_not_logged_in">User not logged in. Please log in first.</string>
     <string name="failed_to_load_reports">Failed to load reports</string>
     <string name="error_loading_notifications">Failed to load notifications</string>
+
+    <!-- NEW: Success/Failure Messages -->
+    <string name="success">Success</string>
+    <string name="report_submitted_successfully">Report submitted successfully!</string>
+    <string name="submission_failed">Submission Failed</string>
 </resources>

@@ -5,20 +5,50 @@
     <string name="app_tagline">รายงานและติดตามปัญหาการบำรุงรักษา</string>
 
     <!-- Navigation -->
+    <string name="home">หน้าหลัก</string>
+    <string name="reports">รายงาน</string>
+    <string name="notifications">การแจ้งเตือน</string>
+    <string name="profile">โปรไฟล์</string>
+
+    <!-- Bottom Navigation Menu -->
     <string name="nav_home">หน้าหลัก</string>
     <string name="nav_history">ประวัติ</string>
     <string name="nav_add">เพิ่ม</string>
+    <string name="nav_map">แผนที่</string>
     <string name="nav_notifications">การแจ้งเตือน</string>
     <string name="nav_profile">โปรไฟล์</string>
-    <string name="nav_map">แผนที่</string>
 
     <!-- Login Screen -->
+    <string name="login">เข้าสู่ระบบ</string>
+    <string name="email">อีเมล</string>
+    <string name="password">รหัสผ่าน</string>
+    <string name="enter_email">กรอกอีเมลของคุณ</string>
+    <string name="enter_password">กรอกรหัสผ่านของคุณ</string>
+    <string name="login_error">เข้าสู่ระบบไม่สำเร็จ กรุณาตรวจสอบข้อมูลประจำตัว</string>
+    <string name="login_success">เข้าสู่ระบบสำเร็จ!</string>
+    <string name="logging_in">กำลังเข้าสู่ระบบ...</string>
     <string name="welcome_to_au_fondue">ยินดีต้อนรับสู่ AU Fondue</string>
     <string name="admin_portal_login">เข้าสู่ระบบผู้ดูแล</string>
     <string name="login_with_microsoft">เข้าสู่ระบบด้วย Microsoft</string>
     <string name="by_logging_in">การเข้าสู่ระบบหมายความว่าคุณยอมรับข้อกำหนดและนโยบายความเป็นส่วนตัวของเรา</string>
 
+    <!-- Register Screen -->
+    <string name="register">สมัครสมาชิก</string>
+    <string name="username">ชื่อผู้ใช้</string>
+    <string name="confirm_password">ยืนยันรหัสผ่าน</string>
+    <string name="enter_username">กรอกชื่อผู้ใช้ของคุณ</string>
+    <string name="enter_confirm_password">ยืนยันรหัสผ่านของคุณ</string>
+    <string name="register_error">การสมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่อีกครั้ง</string>
+    <string name="register_success">สมัครสมาชิกสำเร็จ!</string>
+    <string name="registering">กำลังสมัครสมาชิก...</string>
+    <string name="already_have_account">มีบัญชีอยู่แล้ว?</string>
+    <string name="dont_have_account">ยังไม่มีบัญชี?</string>
+
     <!-- Home Screen -->
+    <string name="welcome">ยินดีต้อนรับ</string>
+    <string name="recent_reports">รายงานล่าสุด</string>
+    <string name="no_reports">ไม่มีรายงาน</string>
+    <string name="view_all_reports">ดูรายงานทั้งหมด</string>
     <string name="good_morning">สวัสดีตอนเช้า</string>
     <string name="good_afternoon">สวัสดีตอนบ่าย</string>
     <string name="good_evening">สวัสดีตอนเย็น</string>
@@ -36,19 +66,24 @@
 
     <!-- Report Screen -->
     <string name="report_issue">รายงานปัญหา</string>
-    <string name="enter_description">อธิบายปัญหาโดยย่อ</string>
+    <string name="description">รายละเอียด</string>
+    <string name="category">หมวดหมู่</string>
+    <string name="photos">รูปภาพ</string>
+    <string name="location">สถานที่</string>
+    <string name="submit">ส่ง</string>
+    <string name="enter_description">กรอกรายละเอียดของปัญหา</string>
+    <string name="select_category">เลือกหมวดหมู่</string>
+    <string name="enter_location">กรอกสถานที่</string>
+    <string name="enter_location_description">กรอกรายละเอียดตำแหน่ง</string>
+    <string name="take_photo">ถ่ายรูป</string>
+    <string name="choose_from_gallery">เลือกจากแกลเลอรี่</string>
+    <string name="enter_custom_category">กรอกหมวดหมู่ที่กำหนดเอง</string>
     <string name="attach_photo">แนบรูปภาพ</string>
     <string name="photos_attached">แนบรูปภาพ %1$d รูป</string>
     <string name="select_location">เลือกตำแหน่ง</string>
-    <string name="use_custom_location">ใช้ตำแหน่งที่กำหนดเอง</string>
     <string name="provide_location">กรุณาระบุตำแหน่ง</string>
-    <string name="enter_location_description">กรอกรายละเอียดตำแหน่ง</string>
+    <string name="use_custom_location">ใช้ตำแหน่งที่กำหนดเอง</string>
     <string name="selected_location">ตำแหน่งที่เลือก</string>
-    <string name="select_category">เลือกหมวดหมู่</string>
-    <string name="enter_custom_category">กรอกหมวดหมู่ที่กำหนดเอง</string>
-    <string name="submit">ส่ง</string>
-    <string name="take_photo">ถ่ายรูป</string>
-    <string name="choose_from_gallery">เลือกจากแกลเลอรี่</string>
     <string name="add_photo">เพิ่มรูปภาพ</string>
 
     <!-- Categories -->
@@ -58,43 +93,47 @@
     <string name="category_broken">เสียหาย</string>
     <string name="category_custom">กำหนดเอง</string>
 
-    <!-- Status -->
-    <string name="status">สถานะ</string>
+    <!-- Reports List Screen -->
+    <string name="all_reports">รายงานทั้งหมด</string>
+    <string name="no_reports_found">ไม่พบรายงาน</string>
+    <string name="pull_to_refresh">ดึงเพื่อรีเฟรช</string>
     <string name="status_pending">รอดำเนินการ</string>
     <string name="status_in_progress">กำลังดำเนินการ</string>
+    <string name="status_resolved">แก้ไขแล้ว</string>
     <string name="status_completed">เสร็จสิ้น</string>
+
+    <!-- Report Detail Screen -->
+    <string name="report_details">รายละเอียดรายงาน</string>
+    <string name="reported_by">รายงานโดย</string>
+    <string name="reported_on">รายงานเมื่อ</string>
+    <string name="status">สถานะ</string>
+    <string name="report_photos">รูปภาพรายงาน</string>
+    <string name="update_from_om">อัปเดตจาก OM</string>
+    <string name="update_photos">อัปเดตรูปภาพ</string>
+    <string name="report_photo">รูปภาพรายงาน</string>
+    <string name="update_photo">อัปเดตรูปภาพ</string>
+    <string name="error_loading_image">เกิดข้อผิดพลาดในการโหลดรูปภาพ</string>
+    <string name="image_not_available">ไม่มีรูปภาพ</string>
+    <string name="latitude">ละติจูด</string>
+    <string name="longitude">ลองจิจูด</string>
+    <string name="not_specified">ไม่ระบุ</string>
+    <string name="comments">ความคิดเห็น</string>
+    <string name="no_comments">ไม่มีความคิดเห็น</string>
+    <string name="no_photos">ไม่มีรูปภาพ</string>
 
     <!-- Map Screen -->
     <string name="map_view">มุมมองแผนที่</string>
 
     <!-- Notifications -->
-    <string name="notifications">การแจ้งเตือน</string>
+    <string name="notification_settings">ตั้งค่าการแจ้งเตือน</string>
     <string name="no_notifications">ไม่มีการแจ้งเตือน</string>
     <string name="new_report">รายงานใหม่</string>
     <string name="this_month">เดือนนี้</string>
     <string name="yesterday">เมื่อวาน</string>
     <string name="view">ดู</string>
-    <string name="notification_settings">ตั้งค่าการแจ้งเตือน</string>
 
     <!-- Issue Details -->
     <string name="issue_details">รายละเอียดปัญหา</string>
-    <string name="description">รายละเอียด</string>
-    <string name="location">ตำแหน่ง</string>
-    <string name="category">หมวดหมู่</string>
-    <string name="reported_by">รายงานโดย</string>
-    <string name="report_photos">รูปภาพรายงาน (%1$d)</string>
-    <string name="update_from_om">อัปเดตจาก OM</string>
-    <string name="comments">ความคิดเห็น</string>
-    <string name="no_comments">ไม่มีความคิดเห็น</string>
-    <string name="update_photos">รูปภาพอัปเดต (%1$d)</string>
-    <string name="no_photos">ไม่มีรูปภาพ</string>
-    <string name="error_loading_image">เกิดข้อผิดพลาดในการโหลดรูปภาพ</string>
-    <string name="image_not_available">ไม่มีรูปภาพ</string>
-    <string name="latitude">ละติจูด</string>
-    <string name="longitude">ลองจิจูด</string>
-    <string name="not_specified">ไม่ได้ระบุ</string>
-    <string name="report_photo">รูปภาพรายงาน</string>
-    <string name="update_photo">รูปภาพอัปเดต</string>
 
     <!-- Profile Screen -->
     <string name="profile_title">โปรไฟล์</string>
@@ -102,35 +141,39 @@
     <string name="report_issues">รายงานปัญหา</string>
     <string name="enable_notifications">เปิดการแจ้งเตือน</string>
     <string name="language">ภาษา</string>
-    <string name="sign_out">ออกจากระบบ</string>
-
-    <!-- Language Selection -->
     <string name="select_language">เลือกภาษา</string>
+    <string name="sign_out">ออกจากระบบ</string>
     <string name="language_english">English</string>
     <string name="language_thai">ไทย</string>
-    <string name="cancel">ยกเลิก</string>
-    <string name="confirm">ยืนยัน</string>
 
-    <!-- Time formats -->
+    <!-- Time -->
     <string name="just_now">เมื่อสักครู่</string>
+    <string name="min_ago">%d นาทีที่แล้ว</string>
+    <string name="hour_ago">%d ชั่วโมงที่แล้ว</string>
+    <string name="hours_ago">%d ชั่วโมงที่แล้ว</string>
+    <string name="day_ago">%d วันที่แล้ว</string>
+    <string name="days_ago">%d วันที่แล้ว</string>
     <string name="minutes_ago">%1$d นาทีที่แล้ว</string>
-    <string name="hours_ago">%1$d ชั่วโมงที่แล้ว</string>
-    <string name="days_ago">%1$d วันที่แล้ว</string>
-
-    <!-- Error messages -->
-    <string name="error">ข้อผิดพลาด</string>
-    <string name="something_went_wrong">เกิดข้อผิดพลาดบางอย่าง</string>
-    <string name="user_not_logged_in">ผู้ใช้ยังไม่ได้เข้าสู่ระบบ กรุณาเข้าสู่ระบบก่อน</string>
-    <string name="failed_to_load_reports">โหลดรายงานไม่สำเร็จ</string>
-    <string name="error_loading_notifications">โหลดการแจ้งเตือนไม่สำเร็จ</string>
 
     <!-- Common -->
     <string name="back">กลับ</string>
     <string name="close">ปิด</string>
+    <string name="cancel">ยกเลิก</string>
     <string name="ok">ตกลง</string>
-    <string name="loading">กำลังโหลด...</string>
+    <string name="confirm">ยืนยัน</string>
+    <string name="error">ข้อผิดพลาด</string>
+    <string name="something_went_wrong">เกิดข้อผิดพลาดบางอย่าง</string>
     <string name="retry">ลองใหม่</string>
+    <string name="loading">กำลังโหลด</string>
     <string name="failed_to_load">โหลดไม่สำเร็จ</string>
     <string name="no_data">ไม่มีข้อมูล</string>
     <string name="create_report">สร้างรายงาน</string>
+    <string name="user_not_logged_in">ผู้ใช้ยังไม่ได้เข้าสู่ระบบ กรุณาเข้าสู่ระบบก่อน</string>
+    <string name="failed_to_load_reports">โหลดรายงานไม่สำเร็จ</string>
+    <string name="error_loading_notifications">โหลดการแจ้งเตือนไม่สำเร็จ</string>
+
+    <!-- NEW: Success/Failure Messages -->
+    <string name="success">สำเร็จ</string>
+    <string name="report_submitted_successfully">ส่งรายงานสำเร็จ!</string>
+    <string name="submission_failed">การส่งรายงานไม่สำเร็จ</string>
 </resources>

@@ -1,6 +1,3 @@
-// Location: app/src/main/java/edu/au/aufondue/screens/report/ReportScreen.kt
-// COMPLETE UPDATED FILE
-
 package edu.au.aufondue.screens.report
 
 import android.Manifest
@@ -60,7 +57,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -71,6 +67,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
+import coil3.compose.AsyncImage
 import coil3.request.crossfade
 import edu.au.aufondue.R
 import java.text.SimpleDateFormat
@@ -83,103 +80,48 @@ fun ReportScreen(
     onNavigateBack: () -> Unit,
     viewModel: ReportViewModel = viewModel()
 ) {
-    val state by viewModel.state.collectAsState()
-    val scrollState = rememberScrollState()
     val context = LocalContext.current
-    var photoUri by remember { mutableStateOf<Uri?>(null) }
-    var showAttachmentDialog by remember { mutableStateOf(false) }
+    val state by viewModel.state.collectAsState()
+
     var expanded by remember { mutableStateOf(false) }
+    val categoryCustom = stringResource(R.string.category_custom)
 
-    // Set context for ViewModel
-    LaunchedEffect(Unit) {
-        viewModel.setContext(context)
-    }
+    // Add state for attachment dialog
+    var showAttachmentDialog by remember { mutableStateOf(false) }
 
-    var hasCameraPermission by remember {
-        mutableStateOf(
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.CAMERA
-            ) == PackageManager.PERMISSION_GRANTED
-        )
-    }
+    // Camera and gallery launchers
+    var cameraImageUri by remember { mutableStateOf<Uri?>(null) }
 
     val cameraLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.TakePicture()
+        contract = ActivityResultContracts.TakePicture()
     ) { success ->
         if (success) {
-            photoUri?.let { uri ->
+            cameraImageUri?.let { uri ->
                 viewModel.onPhotoSelected(uri)
             }
         }
     }
 
-    val cameraPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        hasCameraPermission = isGranted
-        if (isGranted) {
-            photoUri = createImageUri(context)
-            photoUri?.let { uri ->
-                cameraLauncher.launch(uri)
-            }
-        }
-    }
-
-    // Updated gallery launcher to support multiple photo selection
+    // FIXED: Multiple photo selection from gallery
     val galleryLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetMultipleContents()
+        contract = ActivityResultContracts.GetMultipleContents()
     ) { uris: List<Uri> ->
         uris.forEach { uri ->
             viewModel.onPhotoSelected(uri)
         }
     }
 
-    // Get string resources for categories
-    val categoryCustom = stringResource(R.string.category_custom)
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            cameraImageUri = createImageUri(context)
+            cameraImageUri?.let { cameraLauncher.launch(it) }
+        }
+    }
 
-    if (showAttachmentDialog) {
-        AlertDialog(
-            onDismissRequest = { showAttachmentDialog = false },
-            title = { Text(stringResource(R.string.add_photo)) },
-            text = {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    TextButton(
-                        onClick = {
-                            if (hasCameraPermission) {
-                                photoUri = createImageUri(context)
-                                photoUri?.let { uri ->
-                                    cameraLauncher.launch(uri)
-                                }
-                            } else {
-                                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-                            }
-                            showAttachmentDialog = false
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(stringResource(R.string.take_photo))
-                    }
-                    TextButton(
-                        onClick = {
-                            galleryLauncher.launch("image/*")
-                            showAttachmentDialog = false
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(stringResource(R.string.choose_from_gallery))
-                    }
-                }
-            },
-            confirmButton = {},
-            dismissButton = {
-                TextButton(onClick = { showAttachmentDialog = false }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            }
-        )
+    LaunchedEffect(Unit) {
+        viewModel.setContext(context)
     }
 
     Scaffold(
@@ -188,158 +130,150 @@ fun ReportScreen(
                 title = { Text(stringResource(R.string.report_issue)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
         }
-    ) { padding ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // 1. Description Field (FIRST)
+            OutlinedTextField(
+                value = state.description,
+                onValueChange = viewModel::onDescriptionChange,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text(stringResource(R.string.enter_description)) },
+                minLines = 3
+            )
+
+            // 2. Attach Photo Button (SECOND)
+            Button(
+                onClick = { showAttachmentDialog = true },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             ) {
-                // Description Field
-                OutlinedTextField(
-                    value = state.description,
-                    onValueChange = viewModel::onDescriptionChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text(stringResource(R.string.enter_description)) },
-                    minLines = 3
+                Text(stringResource(R.string.attach_photo))
+            }
+
+            // Photo preview (if any photos selected)
+            if (state.selectedPhotos.isNotEmpty()) {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(vertical = 8.dp)
+                ) {
+                    items(state.selectedPhotos) { uri ->
+                        PhotoPreviewItem(
+                            uri = uri,
+                            onRemove = { viewModel.onPhotoRemoved(uri) }
+                        )
+                    }
+                }
+            }
+
+            // 3. Provide Location (THIRD)
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.provide_location),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Medium
                 )
 
-                // Photo Attachment Section
-                Button(
-                    onClick = { showAttachmentDialog = true },
+                OutlinedTextField(
+                    value = state.customLocation,
+                    onValueChange = viewModel::onCustomLocationChange,
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                ) {
-                    Text(stringResource(R.string.attach_photo))
-                }
+                    placeholder = { Text(stringResource(R.string.enter_location_description)) },
+                    minLines = 2
+                )
+            }
 
-                // Photo Preview Section
-                if (state.selectedPhotos.isNotEmpty()) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.photos_attached, state.selectedPhotos.size),
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Medium
-                        )
-
-                        LazyRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            contentPadding = PaddingValues(vertical = 4.dp)
-                        ) {
-                            items(state.selectedPhotos) { uri ->
-                                PhotoPreviewItem(
-                                    uri = uri,
-                                    onRemove = { viewModel.onPhotoRemoved(uri) }
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // Location Section (Custom location only)
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.provide_location),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium
-                    )
-
-                    OutlinedTextField(
-                        value = state.customLocation,
-                        onValueChange = viewModel::onCustomLocationChange,
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text(stringResource(R.string.enter_location_description)) },
-                        minLines = 2
-                    )
-                }
-
-                // Category Selection
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = !expanded }
-                ) {
-                    OutlinedTextField(
-                        value = state.category,
-                        onValueChange = {},
-                        readOnly = true,
-                        trailingIcon = { Icon(Icons.Default.KeyboardArrowDown, null) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(),
-                        placeholder = { Text(stringResource(R.string.select_category)) }
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        listOf(
-                            stringResource(R.string.category_cracked),
-                            stringResource(R.string.category_leaking),
-                            stringResource(R.string.category_flooded),
-                            stringResource(R.string.category_broken),
-                            stringResource(R.string.category_custom)
-                        ).forEach { category ->
-                            DropdownMenuItem(
-                                text = { Text(category) },
-                                onClick = {
-                                    viewModel.onCategoryChange(category)
-                                    expanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-
-                // Custom Category Field
-                AnimatedVisibility(
-                    visible = state.category == categoryCustom,
-                    enter = fadeIn() + expandVertically(),
-                    exit = fadeOut() + shrinkVertically()
-                ) {
-                    OutlinedTextField(
-                        value = state.customCategory,
-                        onValueChange = viewModel::onCustomCategoryChange,
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text(stringResource(R.string.enter_custom_category)) }
-                    )
-                }
-
-                // Submit Button
-                Button(
-                    onClick = { viewModel.submitReport(onSuccess = onNavigateBack) },
+            // 4. Category Dropdown (FOURTH)
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { expanded = !expanded },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedTextField(
+                    value = state.category,
+                    onValueChange = { },
+                    readOnly = true,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    enabled = !state.isLoading
-                ) {
-                    if (state.isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.onPrimary
+                        .menuAnchor(),
+                    placeholder = { Text(stringResource(R.string.select_category)) },
+                    trailingIcon = {
+                        Icon(
+                            Icons.Default.KeyboardArrowDown,
+                            contentDescription = "Dropdown arrow"
                         )
-                    } else {
-                        Text(stringResource(R.string.submit))
                     }
+                )
+
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    listOf(
+                        stringResource(R.string.category_cracked),
+                        stringResource(R.string.category_leaking),
+                        stringResource(R.string.category_flooded),
+                        stringResource(R.string.category_broken),
+                        stringResource(R.string.category_custom)
+                    ).forEach { category ->
+                        DropdownMenuItem(
+                            text = { Text(category) },
+                            onClick = {
+                                viewModel.onCategoryChange(category)
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            // Custom Category Field
+            AnimatedVisibility(
+                visible = state.category == categoryCustom,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                OutlinedTextField(
+                    value = state.customCategory,
+                    onValueChange = viewModel::onCustomCategoryChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text(stringResource(R.string.enter_custom_category)) }
+                )
+            }
+
+            // 5. Submit Button (LAST)
+            Button(
+                onClick = { viewModel.submitReport() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(8.dp),
+                enabled = !state.isLoading
+            ) {
+                if (state.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text(stringResource(R.string.submit))
                 }
             }
 
@@ -352,6 +286,97 @@ fun ReportScreen(
                     confirmButton = {
                         TextButton(onClick = { viewModel.clearError() }) {
                             Text(stringResource(R.string.ok))
+                        }
+                    }
+                )
+            }
+
+            // SUCCESS POPUP
+            state.submissionStatus?.let { status ->
+                AlertDialog(
+                    onDismissRequest = {
+                        viewModel.clearSubmissionStatus()
+                        if (status == SubmissionStatus.SUCCESS) {
+                            onNavigateBack()
+                        }
+                    },
+                    title = {
+                        Text(
+                            text = if (status == SubmissionStatus.SUCCESS) {
+                                stringResource(R.string.success)
+                            } else {
+                                stringResource(R.string.submission_failed)
+                            }
+                        )
+                    },
+                    text = {
+                        Text(
+                            text = if (status == SubmissionStatus.SUCCESS) {
+                                stringResource(R.string.report_submitted_successfully)
+                            } else {
+                                state.error ?: "Failed to submit report"
+                            }
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                viewModel.clearSubmissionStatus()
+                                if (status == SubmissionStatus.SUCCESS) {
+                                    onNavigateBack()
+                                }
+                            }
+                        ) {
+                            Text(stringResource(R.string.ok))
+                        }
+                    }
+                )
+            }
+
+            // Attach Photo Dialog
+            if (showAttachmentDialog) {
+                AlertDialog(
+                    onDismissRequest = { showAttachmentDialog = false },
+                    title = { Text(stringResource(R.string.add_photo)) },
+                    text = {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            TextButton(
+                                onClick = {
+                                    when (ContextCompat.checkSelfPermission(
+                                        context,
+                                        Manifest.permission.CAMERA
+                                    )) {
+                                        PackageManager.PERMISSION_GRANTED -> {
+                                            cameraImageUri = createImageUri(context)
+                                            cameraImageUri?.let { cameraLauncher.launch(it) }
+                                        }
+                                        else -> {
+                                            permissionLauncher.launch(Manifest.permission.CAMERA)
+                                        }
+                                    }
+                                    showAttachmentDialog = false
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(stringResource(R.string.take_photo))
+                            }
+                            TextButton(
+                                onClick = {
+                                    galleryLauncher.launch("image/*")
+                                    showAttachmentDialog = false
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(stringResource(R.string.choose_from_gallery))
+                            }
+                        }
+                    },
+                    confirmButton = {},
+                    dismissButton = {
+                        TextButton(onClick = { showAttachmentDialog = false }) {
+                            Text(stringResource(R.string.cancel))
                         }
                     }
                 )

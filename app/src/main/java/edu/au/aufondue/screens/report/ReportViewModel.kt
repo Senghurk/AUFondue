@@ -23,6 +23,11 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
+enum class SubmissionStatus {
+    SUCCESS,
+    FAILED
+}
+
 data class ReportState(
     val description: String = "",
     val category: String = "",
@@ -30,7 +35,8 @@ data class ReportState(
     val selectedPhotos: List<Uri> = emptyList(),
     val customLocation: String = "",
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val submissionStatus: SubmissionStatus? = null
 )
 
 class ReportViewModel : ViewModel() {
@@ -166,10 +172,10 @@ class ReportViewModel : ViewModel() {
         )
     }
 
-    fun submitReport(onSuccess: () -> Unit) {
+    fun submitReport() {
         viewModelScope.launch {
             try {
-                _state.update { it.copy(isLoading = true, error = null) }
+                _state.update { it.copy(isLoading = true, error = null, submissionStatus = null) }
                 validateInput()
 
                 val currentState = state.value
@@ -229,18 +235,29 @@ class ReportViewModel : ViewModel() {
                     }
 
                     Log.d("ReportViewModel", "Report submitted successfully")
-                    _state.update { ReportState() }
-                    onSuccess()
+
+                    // Set success status
+                    _state.update {
+                        it.copy(
+                            submissionStatus = SubmissionStatus.SUCCESS,
+                            isLoading = false
+                        )
+                    }
+
                 } catch (e: Exception) {
                     Log.e("ReportViewModel", "API call failed", e)
                     throw Exception("Failed to submit report: ${e.message}")
                 }
             } catch (e: Exception) {
                 Log.e("ReportViewModel", "Error submitting report", e)
-                _state.update { it.copy(error = e.message ?: "An unknown error occurred") }
+                _state.update {
+                    it.copy(
+                        submissionStatus = SubmissionStatus.FAILED,
+                        error = e.message ?: "An unknown error occurred",
+                        isLoading = false
+                    )
+                }
             } finally {
-                _state.update { it.copy(isLoading = false) }
-
                 // Clean up temporary files
                 context?.cacheDir?.listFiles()?.forEach { file ->
                     if (file.name.startsWith("upload_")) {
@@ -261,6 +278,10 @@ class ReportViewModel : ViewModel() {
 
     fun clearError() {
         _state.update { it.copy(error = null) }
+    }
+
+    fun clearSubmissionStatus() {
+        _state.update { it.copy(submissionStatus = null) }
     }
 
     override fun onCleared() {
