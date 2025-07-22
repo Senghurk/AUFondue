@@ -106,15 +106,13 @@ fun LoginScreen(
                 if (state.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(20.dp),
-                        color = Color.White,
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_microsoft), // Add Microsoft icon
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_microsoft),
                         contentDescription = "Microsoft",
                         modifier = Modifier.size(20.dp),
-                        tint = Color.White
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
