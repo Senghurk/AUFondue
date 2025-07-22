@@ -69,11 +69,32 @@ fun HomeScreen(
     val userEmail = userPreferences.getUserEmail() ?: ""
 
     // Time-based greeting using string resources - moved outside remember
-    val greeting = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
-        in 0..11 -> stringResource(R.string.good_morning)
-        in 12..16 -> stringResource(R.string.good_afternoon)
-        in 17..20 -> stringResource(R.string.good_evening)
-        else -> stringResource(R.string.good_night)
+    // Enhanced time-based greeting that considers user's timezone and internet time
+    val greeting = remember {
+        try {
+            // Get current time in user's timezone (automatically syncs with internet time)
+            val currentTime = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                java.time.ZonedDateTime.now(java.time.ZoneId.systemDefault()).hour
+            } else {
+                Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+            }
+
+            when (currentTime) {
+                in 0..11 -> context.getString(R.string.good_morning)
+                in 12..16 -> context.getString(R.string.good_afternoon)
+                in 17..20 -> context.getString(R.string.good_evening)
+                else -> context.getString(R.string.good_night)
+            }
+        } catch (e: Exception) {
+            // Fallback to Calendar if modern API fails
+            val hourOfDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+            when (hourOfDay) {
+                in 0..11 -> context.getString(R.string.good_morning)
+                in 12..16 -> context.getString(R.string.good_afternoon)
+                in 17..20 -> context.getString(R.string.good_evening)
+                else -> context.getString(R.string.good_night)
+            }
+        }
     }
 
     // Generate avatar URL (using the same method as ProfileViewModel)
