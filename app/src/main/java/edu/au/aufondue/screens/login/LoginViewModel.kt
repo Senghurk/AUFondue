@@ -2,6 +2,7 @@ package edu.au.aufondue.screens.login
 
 import android.app.Application
 import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.lifecycle.AndroidViewModel
 import edu.au.aufondue.auth.AuthManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,6 +10,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 data class LoginState(
+    val email: String = "",
+    val password: String = "",
+    val firstName: String = "",
+    val lastName: String = "",
+    val isSignUp: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null,
     val loginSuccess: Boolean = false
@@ -19,6 +25,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     val state: StateFlow<LoginState> = _state.asStateFlow()
 
     private var authManager: AuthManager? = null
+    private var activity: ComponentActivity? = null
 
     companion object {
         private const val TAG = "LoginViewModel"
@@ -33,7 +40,16 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * Sign in with Microsoft account - Primary authentication method
+     * Set the activity context for Microsoft OAuth
+     */
+    fun setActivity(activity: ComponentActivity) {
+        this.activity = activity
+        // Reinitialize AuthManager with activity context
+        authManager = AuthManager.getInstance(activity)
+    }
+
+    /**
+     * Sign in with Microsoft OAuth
      */
     fun signInWithMicrosoft() {
         val authMgr = authManager
@@ -44,14 +60,21 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
 
+        if (activity == null) {
+            _state.value = _state.value.copy(
+                error = "Activity context required for Microsoft login"
+            )
+            return
+        }
+
         _state.value = _state.value.copy(
             isLoading = true,
             error = null
         )
 
         authMgr.signInWithMicrosoft(
-            onSuccess = { _ ->
-                Log.d(TAG, "Microsoft sign-in successful")
+            onSuccess = { userId ->
+                Log.d(TAG, "Microsoft sign-in successful, user ID: $userId")
                 _state.value = _state.value.copy(
                     isLoading = false,
                     loginSuccess = true
@@ -61,55 +84,64 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                 Log.e(TAG, "Microsoft sign-in failed", exception)
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    error = getMicrosoftErrorMessage(exception)
+                    error = exception.message ?: "Microsoft sign-in failed"
                 )
             }
         )
     }
 
     /**
-     * Legacy sign in method - redirects to Microsoft auth for backward compatibility
+     * Update email field
      */
-    fun signIn() {
-        signInWithMicrosoft()
+    fun updateEmail(email: String) {
+        _state.value = _state.value.copy(
+            email = email,
+            error = null
+        )
     }
 
     /**
-     * Convert Microsoft authentication exceptions to user-friendly messages
+     * Update password field
      */
-    private fun getMicrosoftErrorMessage(exception: Exception): String {
-        return when {
-            // User cancelled the authentication
-            exception.message?.contains("cancelled") == true ||
-                    exception.message?.contains("CANCELLED") == true ->
-                "Authentication was cancelled. Please try again."
-
-            // Invalid account domain
-            exception.message?.contains("domain") == true ||
-                    exception.message?.contains("organization") == true ->
-                "Please use your university Microsoft account (@au.edu)."
-
-            // Network error
-            exception.message?.contains("network") == true ||
-                    exception.message?.contains("Network") == true ->
-                "Network error. Please check your internet connection."
-
-            // MSAL specific errors
-            exception.message?.contains("MSAL") == true ->
-                "Microsoft authentication service error. Please try again."
-
-            // Account not found or access denied
-            exception.message?.contains("access_denied") == true ||
-                    exception.message?.contains("unauthorized") == true ->
-                "Access denied. Please ensure you're using an authorized university account."
-
-            // Default error message
-            else -> exception.message ?: "Microsoft authentication failed. Please try again."
-        }
+    fun updatePassword(password: String) {
+        _state.value = _state.value.copy(
+            password = password,
+            error = null
+        )
     }
 
     /**
-     * Clear any error state
+     * Update first name field
+     */
+    fun updateFirstName(firstName: String) {
+        _state.value = _state.value.copy(
+            firstName = firstName,
+            error = null
+        )
+    }
+
+    /**
+     * Update last name field
+     */
+    fun updateLastName(lastName: String) {
+        _state.value = _state.value.copy(
+            lastName = lastName,
+            error = null
+        )
+    }
+
+    /**
+     * Toggle between sign in and sign up modes
+     */
+    fun toggleSignUpMode() {
+        _state.value = _state.value.copy(
+            isSignUp = !_state.value.isSignUp,
+            error = null
+        )
+    }
+
+    /**
+     * Clear error state
      */
     fun clearError() {
         _state.value = _state.value.copy(error = null)
