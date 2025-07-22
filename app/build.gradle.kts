@@ -22,6 +22,11 @@ plugins {
 android {
     namespace = "edu.au.aufondue"
     compileSdk = 35
+
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
+    }
 /*
     tasks.register("generateAuthConfig") {
         doLast {

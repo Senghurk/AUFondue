@@ -42,9 +42,10 @@ class AuthManager private constructor(private val context: Context) {
     fun isSignedIn(): Boolean = getCurrentUser() != null
 
     /**
-     * Sign in with Microsoft OAuth through Firebase (like your web app)
+     * Sign in with Microsoft OAuth through Firebase (requires Activity context)
      */
     fun signInWithMicrosoft(
+        activity: ComponentActivity,
         onSuccess: (String) -> Unit,
         onError: (Exception) -> Unit
     ) {
@@ -57,14 +58,8 @@ class AuthManager private constructor(private val context: Context) {
                     .setScopes(listOf("mail.read", "openid", "profile"))
                     .build()
 
-                // Check if context is ComponentActivity
-                if (context !is ComponentActivity) {
-                    onError(Exception("Microsoft login requires Activity context"))
-                    return@launch
-                }
-
-                // Start Microsoft OAuth flow
-                val result = auth.startActivityForSignInWithProvider(context, provider).await()
+                // Start Microsoft OAuth flow using provided activity
+                val result = auth.startActivityForSignInWithProvider(activity, provider).await()
                 val user = result.user
 
                 if (user != null) {
@@ -176,10 +171,12 @@ class AuthManager private constructor(private val context: Context) {
      * Re-authenticate user with Microsoft
      */
     fun reauthenticateUser(
+        activity: ComponentActivity,
         onSuccess: () -> Unit,
         onError: (Exception) -> Unit
     ) {
         signInWithMicrosoft(
+            activity = activity,
             onSuccess = { onSuccess() },
             onError = onError
         )

@@ -44,8 +44,6 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun setActivity(activity: ComponentActivity) {
         this.activity = activity
-        // Reinitialize AuthManager with activity context
-        authManager = AuthManager.getInstance(activity)
     }
 
     /**
@@ -73,6 +71,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         )
 
         authMgr.signInWithMicrosoft(
+            activity = activity!!,
             onSuccess = { userId ->
                 Log.d(TAG, "Microsoft sign-in successful, user ID: $userId")
                 _state.value = _state.value.copy(
