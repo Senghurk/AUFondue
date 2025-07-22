@@ -136,6 +136,7 @@ fun ReportScreen(
             )
         }
     ) { paddingValues ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -144,7 +145,89 @@ fun ReportScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 1. Description Field (FIRST)
+
+        // 1. Provide Location
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.provide_location),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium
+            )
+
+            OutlinedTextField(
+                value = state.customLocation,
+                onValueChange = viewModel::onCustomLocationChange,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text(stringResource(R.string.enter_location_description)) },
+                minLines = 2
+            )
+        }
+
+
+        // 2. Category Dropdown
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            OutlinedTextField(
+                value = state.category,
+                onValueChange = { },
+                readOnly = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(),
+                placeholder = { Text(stringResource(R.string.select_category)) },
+                trailingIcon = {
+                    Icon(
+                        Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Dropdown arrow"
+                    )
+                }
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                listOf(
+                    stringResource(R.string.category_cracked),
+                    stringResource(R.string.category_leaking),
+                    stringResource(R.string.category_flooded),
+                    stringResource(R.string.category_broken),
+                    stringResource(R.string.category_custom)
+                ).forEach { category ->
+                    DropdownMenuItem(
+                        text = { Text(category) },
+                        onClick = {
+                            viewModel.onCategoryChange(category)
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+
+        // Custom Category Field
+        AnimatedVisibility(
+            visible = state.category == categoryCustom,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            OutlinedTextField(
+                value = state.customCategory,
+                onValueChange = viewModel::onCustomCategoryChange,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text(stringResource(R.string.enter_custom_category)) }
+            )
+        }
+
+
+
+            // 3. Description Field
             OutlinedTextField(
                 value = state.description,
                 onValueChange = viewModel::onDescriptionChange,
@@ -153,7 +236,7 @@ fun ReportScreen(
                 minLines = 3
             )
 
-            // 2. Attach Photo Button (SECOND)
+            // 4. Attach Photo Button
             Button(
                 onClick = { showAttachmentDialog = true },
                 modifier = Modifier.fillMaxWidth(),
@@ -180,85 +263,7 @@ fun ReportScreen(
                 }
             }
 
-            // 3. Provide Location (THIRD)
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.provide_location),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium
-                )
-
-                OutlinedTextField(
-                    value = state.customLocation,
-                    onValueChange = viewModel::onCustomLocationChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text(stringResource(R.string.enter_location_description)) },
-                    minLines = 2
-                )
-            }
-
-            // 4. Category Dropdown (FOURTH)
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                OutlinedTextField(
-                    value = state.category,
-                    onValueChange = { },
-                    readOnly = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(),
-                    placeholder = { Text(stringResource(R.string.select_category)) },
-                    trailingIcon = {
-                        Icon(
-                            Icons.Default.KeyboardArrowDown,
-                            contentDescription = "Dropdown arrow"
-                        )
-                    }
-                )
-
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    listOf(
-                        stringResource(R.string.category_cracked),
-                        stringResource(R.string.category_leaking),
-                        stringResource(R.string.category_flooded),
-                        stringResource(R.string.category_broken),
-                        stringResource(R.string.category_custom)
-                    ).forEach { category ->
-                        DropdownMenuItem(
-                            text = { Text(category) },
-                            onClick = {
-                                viewModel.onCategoryChange(category)
-                                expanded = false
-                            }
-                        )
-                    }
-                }
-            }
-
-            // Custom Category Field
-            AnimatedVisibility(
-                visible = state.category == categoryCustom,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
-            ) {
-                OutlinedTextField(
-                    value = state.customCategory,
-                    onValueChange = viewModel::onCustomCategoryChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text(stringResource(R.string.enter_custom_category)) }
-                )
-            }
-
-            // 5. Submit Button (LAST)
+            // 5. Submit Button
             Button(
                 onClick = { viewModel.submitReport() },
                 modifier = Modifier
