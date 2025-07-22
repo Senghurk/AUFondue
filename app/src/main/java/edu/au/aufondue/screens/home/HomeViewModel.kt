@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import edu.au.aufondue.api.RetrofitClient
 import edu.au.aufondue.api.models.IssueResponse
 import edu.au.aufondue.auth.UserPreferences
+import edu.au.aufondue.utils.TimeUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,15 +36,10 @@ class HomeViewModel : ViewModel() {
     private var context: Context? = null
     private val TAG = "HomeViewModel"
 
-    // Store report creation timestamps locally
-    private val reportTimestampMap = mutableMapOf<String, Long>()
-
     // Load current user reports based on tab selection
     @RequiresApi(Build.VERSION_CODES.O)
     fun loadReports(context: Context, isSubmittedTab: Boolean) {
         this.context = context
-        // Load any saved timestamps
-        loadTimestamps(context)
 
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null)
@@ -94,26 +90,24 @@ class HomeViewModel : ViewModel() {
     }
 
     private suspend fun getUserId(email: String, username: String): Long? {
-        try {
-            // Create or get user to ensure we have the ID
+        return try {
+            // Use createOrGetUser which is the correct API endpoint
             val response = RetrofitClient.apiService.createOrGetUser(username, email)
-
-            if (!response.isSuccessful) {
-                Log.e(TAG, "API error: ${response.code()}")
-                return null
+            if (response.isSuccessful) {
+                val userResponse = response.body()
+                if (userResponse?.success == true) {
+                    userResponse.data?.id
+                } else {
+                    Log.e(TAG, "Failed to get user: ${userResponse?.message}")
+                    null
+                }
+            } else {
+                Log.e(TAG, "Failed to get user: ${response.code()}")
+                null
             }
-
-            val userResponse = response.body()
-            if (userResponse?.success != true || userResponse.data == null) {
-                Log.e(TAG, "API error: ${userResponse?.message}")
-                return null
-            }
-
-            Log.d(TAG, "Retrieved user ID: ${userResponse.data.id}")
-            return userResponse.data.id
         } catch (e: Exception) {
             Log.e(TAG, "Error getting user ID", e)
-            return null
+            null
         }
     }
 
@@ -126,7 +120,7 @@ class HomeViewModel : ViewModel() {
                 Log.e(TAG, "Failed to load submitted reports: ${response.code()}")
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    error = "Failed to load your reports"
+                    error = "Failed to load submitted reports"
                 )
                 return
             }
@@ -154,9 +148,6 @@ class HomeViewModel : ViewModel() {
                 isLoading = false,
                 submittedReports = reportItems
             )
-
-            // Save timestamps
-            saveTimestamps(context)
 
         } catch (e: Exception) {
             Log.e(TAG, "Error loading submitted reports", e)
@@ -201,9 +192,6 @@ class HomeViewModel : ViewModel() {
                 trackedReports = reportItems
             )
 
-            // Save timestamps
-            saveTimestamps(context)
-
         } catch (e: Exception) {
             Log.e(TAG, "Error loading tracked reports", e)
             _state.value = _state.value.copy(
@@ -220,73 +208,24 @@ class HomeViewModel : ViewModel() {
             else -> "$category Issue"
         }
 
-        // Get the stored timestamp or store current time if this is the first time seeing this report
-        val reportKey = "report_${id}"
-        val timestamp = reportTimestampMap.getOrPut(reportKey) {
-            System.currentTimeMillis()
+        // FIXED: Use server timestamp instead of local device timestamp
+        // The createdAt field from the server already contains the correct submission time
+        val timeAgo = try {
+            TimeUtils.formatTimeAgo(this.createdAt)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error formatting time for report ${this.id}", e)
+            "Unknown time"
         }
+
+        Log.d(TAG, "Report ${this.id}: Server createdAt = ${this.createdAt}, timeAgo = $timeAgo")
 
         return ReportItem(
             id = id.toString(),
             title = title,
             description = description,
             status = status,
-            timeAgo = getTimeAgo(timestamp)
+            timeAgo = timeAgo
         )
-    }
-
-    private fun getTimeAgo(timestamp: Long): String {
-        try {
-            val now = System.currentTimeMillis()
-            val diffMillis = now - timestamp
-
-            val secondsAgo = diffMillis / 1000
-            val minutesAgo = secondsAgo / 60
-            val hoursAgo = minutesAgo / 60
-            val daysAgo = hoursAgo / 24
-
-            Log.d(TAG, "Time differences - seconds: $secondsAgo, minutes: $minutesAgo, hours: $hoursAgo, days: $daysAgo")
-
-            return when {
-                secondsAgo < 60 -> "Just now"
-                minutesAgo < 60 -> "$minutesAgo min ago"
-                hoursAgo < 24 -> "$hoursAgo hour${if (hoursAgo > 1) "s" else ""} ago"
-                daysAgo < 30 -> "$daysAgo day${if (daysAgo > 1) "s" else ""} ago"
-                else -> {
-                    // For older than a month, format as date
-                    val formatter = java.text.SimpleDateFormat("MMM d, yyyy", java.util.Locale.getDefault())
-                    formatter.format(java.util.Date(timestamp))
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error calculating time difference", e)
-            return "Unknown time"
-        }
-    }
-
-    // Functions to save and load timestamps from SharedPreferences
-    private fun saveTimestamps(context: Context) {
-        val prefs = context.getSharedPreferences("report_timestamps", Context.MODE_PRIVATE)
-        val editor = prefs.edit()
-
-        reportTimestampMap.forEach { (key, timestamp) ->
-            editor.putLong(key, timestamp)
-        }
-
-        editor.apply()
-        Log.d(TAG, "Saved ${reportTimestampMap.size} timestamps to preferences")
-    }
-
-    private fun loadTimestamps(context: Context) {
-        val prefs = context.getSharedPreferences("report_timestamps", Context.MODE_PRIVATE)
-
-        prefs.all.forEach { (key, value) ->
-            if (value is Long) {
-                reportTimestampMap[key] = value
-            }
-        }
-
-        Log.d(TAG, "Loaded ${reportTimestampMap.size} timestamps from preferences")
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
