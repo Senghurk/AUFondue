@@ -18,31 +18,27 @@
     <string name="nav_notifications">Notifications</string>
     <string name="nav_profile">Profile</string>
 
-    <!-- Login Screen -->
+    <!-- Login Screen - Microsoft Authentication Only -->
     <string name="login">Login</string>
-    <string name="email">Email</string>
-    <string name="password">Password</string>
-    <string name="enter_email">Enter your email</string>
-    <string name="enter_password">Enter your password</string>
     <string name="login_error">Login failed. Please check your credentials.</string>
     <string name="login_success">Login successful!</string>
-    <string name="logging_in">Logging in...</string>
+    <string name="logging_in">Signing in...</string>
     <string name="welcome_to_au_fondue">Welcome to AU Fondue</string>
-    <string name="admin_portal_login">Admin Portal Login</string>
-    <string name="login_with_microsoft">Log in with Microsoft</string>
-    <string name="by_logging_in">By logging in, you agree to our Terms and Privacy Policy</string>
+    <string name="admin_portal_login">University Access Portal</string>
+    <string name="login_with_microsoft">Sign in with Microsoft</string>
+    <string name="by_logging_in">By signing in, you agree to our Terms and Privacy Policy</string>
 
-    <!-- Register Screen -->
-    <string name="register">Register</string>
-    <string name="username">Username</string>
-    <string name="confirm_password">Confirm Password</string>
-    <string name="enter_username">Enter your username</string>
-    <string name="enter_confirm_password">Confirm your password</string>
-    <string name="register_error">Registration failed. Please try again.</string>
-    <string name="register_success">Registration successful!</string>
-    <string name="registering">Registering...</string>
-    <string name="already_have_account">Already have an account?</string>
-    <string name="dont_have_account">Don\'t have an account?</string>
+    <!-- Microsoft Authentication -->
+    <string name="microsoft_auth_required">Please use your university Microsoft account (@au.edu)</string>
+    <string name="microsoft_auth_cancelled">Authentication was cancelled</string>
+    <string name="microsoft_auth_failed">Microsoft authentication failed. Please try again.</string>
+    <string name="network_error">Network error. Please check your internet connection.</string>
+    <string name="auth_service_error">Authentication service error. Please try again.</string>
+
+    <!-- University Access -->
+    <string name="university_access_only">For AU University Students and Staff Only</string>
+    <string name="secure_access_info">Use your university Microsoft account to securely access AU Fondue</string>
+
 
     <!-- Home Screen -->
     <string name="welcome">Welcome</string>
@@ -172,7 +168,7 @@
     <string name="failed_to_load_reports">Failed to load reports</string>
     <string name="error_loading_notifications">Failed to load notifications</string>
 
-    <!-- NEW: Success/Failure Messages -->
+    <!-- Success/Failure Messages -->
     <string name="success">Success</string>
     <string name="report_submitted_successfully">Report submitted successfully!</string>
     <string name="submission_failed">Submission Failed</string>

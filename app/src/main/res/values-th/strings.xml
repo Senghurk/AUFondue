@@ -32,17 +32,16 @@
     <string name="login_with_microsoft">เข้าสู่ระบบด้วย Microsoft</string>
     <string name="by_logging_in">การเข้าสู่ระบบหมายความว่าคุณยอมรับข้อกำหนดและนโยบายความเป็นส่วนตัวของเรา</string>
 
-    <!-- Register Screen -->
-    <string name="register">สมัครสมาชิก</string>
-    <string name="username">ชื่อผู้ใช้</string>
-    <string name="confirm_password">ยืนยันรหัสผ่าน</string>
-    <string name="enter_username">กรอกชื่อผู้ใช้ของคุณ</string>
-    <string name="enter_confirm_password">ยืนยันรหัสผ่านของคุณ</string>
-    <string name="register_error">การสมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่อีกครั้ง</string>
-    <string name="register_success">สมัครสมาชิกสำเร็จ!</string>
-    <string name="registering">กำลังสมัครสมาชิก...</string>
-    <string name="already_have_account">มีบัญชีอยู่แล้ว?</string>
-    <string name="dont_have_account">ยังไม่มีบัญชี?</string>
+    <!-- Microsoft Authentication -->
+    <string name="microsoft_auth_required">กรุณาใช้บัญชี Microsoft ของมหาวิทยาลัย (@au.edu)</string>
+    <string name="microsoft_auth_cancelled">การยืนยันตัวตนถูกยกเลิก</string>
+    <string name="microsoft_auth_failed">การยืนยันตัวตนผ่าน Microsoft ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง</string>
+    <string name="network_error">เกิดข้อผิดพลาดเครือข่าย กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต</string>
+    <string name="auth_service_error">เกิดข้อผิดพลาดในบริการยืนยันตัวตน กรุณาลองใหม่อีกครั้ง</string>
+
+    <!-- University Access -->
+    <string name="university_access_only">สำหรับนักศึกษาและเจ้าหน้าที่ของ AU เท่านั้น</string>
+    <string name="secure_access_info">ใช้บัญชี Microsoft ของมหาวิทยาลัยเพื่อเข้าใช้ AU Fondue อย่างปลอดภัย</string>
 
     <!-- Home Screen -->
     <string name="welcome">ยินดีต้อนรับ</string>

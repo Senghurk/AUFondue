@@ -4,7 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -16,22 +15,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.au.aufondue.R
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
     viewModel: LoginViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    var isPasswordVisible by remember { mutableStateOf(false) }
 
     // Handle login success
     LaunchedEffect(state.loginSuccess) {
@@ -50,205 +46,166 @@ fun LoginScreen(
     ) {
         // Logo and Title
         Image(
-            painter = painterResource(id = R.drawable.app_icon), // Make sure this icon exists
+            painter = painterResource(id = R.drawable.app_icon),
             contentDescription = "AU Fondue Logo",
-            modifier = Modifier.size(80.dp)
+            modifier = Modifier.size(120.dp)
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "AU FONDUE",
+            text = stringResource(R.string.welcome_to_au_fondue),
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.Red
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Report and track maintenance issues",
-            fontSize = 14.sp,
-            color = Color.Gray,
+            text = stringResource(R.string.app_tagline),
+            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(48.dp))
 
-        // Main Sign In Card
+        // Microsoft Login Card
         Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color(0xFFF5F5F5)
-            )
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
+                modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = if (state.isSignUp) "Create Account" else "Sign In",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.Black
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // First Name and Last Name fields (only for sign up)
-                if (state.isSignUp) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        OutlinedTextField(
-                            value = state.firstName,
-                            onValueChange = viewModel::updateFirstName,
-                            label = { Text("First Name") },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = null
-                                )
-                            },
-                            modifier = Modifier.weight(1f),
-                            singleLine = true,
-                            enabled = !state.isLoading,
-                            isError = state.isSignUp && state.firstName.isEmpty()
-                        )
-                        OutlinedTextField(
-                            value = state.lastName,
-                            onValueChange = viewModel::updateLastName,
-                            label = { Text("Last Name") },
-                            modifier = Modifier.weight(1f),
-                            singleLine = true,
-                            enabled = !state.isLoading,
-                            isError = state.isSignUp && state.lastName.isEmpty()
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-
-                // Email field
-                OutlinedTextField(
-                    value = state.email,
-                    onValueChange = viewModel::updateEmail,
-                    label = { Text("Email") },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Email,
-                            contentDescription = null
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    singleLine = true,
-                    enabled = !state.isLoading,
-                    placeholder = { Text("user@example.com") },
-//                    isError = state.email.isNotEmpty() && !state.email.endsWith("@au.edu")
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Password field
-                OutlinedTextField(
-                    value = state.password,
-                    onValueChange = viewModel::updatePassword,
-                    label = { Text("Password") },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = null
-                        )
-                    },
-                    trailingIcon = {
-                        IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
-                            Icon(
-                                imageVector = if (isPasswordVisible) Icons.Default.Visibility
-                                else Icons.Default.VisibilityOff,
-                                contentDescription = if (isPasswordVisible) "Hide password" else "Show password"
-                            )
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    visualTransformation = if (isPasswordVisible) VisualTransformation.None
-                    else PasswordVisualTransformation(),
-                    singleLine = true,
-                    enabled = !state.isLoading
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Forgot Password (only show for sign in)
-                if (!state.isSignUp) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        TextButton(
-                            onClick = viewModel::sendPasswordReset,
-                            enabled = !state.isLoading
-                        ) {
-                            Text("Forgot Password?")
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
                 // Error message
                 if (state.error != null) {
-                    Text(
-                        text = state.error!!,
-                        color = MaterialTheme.colorScheme.error,
-                        fontSize = 14.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        )
+                    ) {
+                        Text(
+                            text = state.error!!,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            fontSize = 14.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
                 }
 
-                // Sign In/Sign Up Button
+                // Microsoft Login Button
                 Button(
                     onClick = {
-                        if (state.isSignUp) {
-                            viewModel.createAccount()
-                        } else {
-                            viewModel.signIn()
-                        }
+                        viewModel.clearError()
+                        viewModel.signInWithMicrosoft()
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
                     enabled = !state.isLoading,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Gray
-                    )
+                        containerColor = Color(0xFF0078D4), // Microsoft Blue
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
                     if (state.isLoading) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            color = Color.White
+                            modifier = Modifier.size(20.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = stringResource(R.string.logging_in),
+                            fontSize = 16.sp
                         )
                     } else {
+                        // Microsoft Logo (using a generic icon for now)
+                        Icon(
+                            imageVector = Icons.Default.AccountCircle,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = if (state.isSignUp) "Create Account" else "Sign In",
-                            color = Color.White
+                            text = stringResource(R.string.login_with_microsoft),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
                         )
                     }
                 }
 
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // University Information
+                Text(
+                    text = stringResource(R.string.university_access_only),
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Medium
+                )
+
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Toggle between Sign In and Sign Up
-                TextButton(
-                    onClick = viewModel::toggleSignUpMode,
-                    enabled = !state.isLoading
-                ) {
-                    Text(
-                        text = if (state.isSignUp) "Already have an account? Sign In"
-                        else "Don't have an account? Sign Up",
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
+                // Privacy Notice
+                Text(
+                    text = stringResource(R.string.by_logging_in),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                    textAlign = TextAlign.Center,
+                    lineHeight = 16.sp
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Additional Information Card
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Secure University Access",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = stringResource(R.string.secure_access_info),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }

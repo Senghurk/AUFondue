@@ -5,6 +5,7 @@
     <!-- Add permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
@@ -18,6 +19,8 @@
 
     <!-- Add camera permissions -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
@@ -47,7 +50,7 @@
         </activity>
 
 
-        <!-- ADD THIS: Firebase Messaging Service -->
+        <!-- Firebase Messaging Service -->
         <service
             android:name=".service.MyFirebaseMessagingService"
             android:exported="false">
@@ -56,7 +59,7 @@
             </intent-filter>
         </service>
 
-        <!-- ADD THIS: Default notification icon and color -->
+        <!-- Default notification icon and color -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_notification" />
@@ -67,7 +70,8 @@
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="au_fondue_notifications" />
 
-        <!--
+
+        <!-- MSAL Browser Tab Activity for authentication -->
         <activity
             android:name="com.microsoft.identity.client.BrowserTabActivity"
             android:exported="true">
@@ -81,7 +85,7 @@
                     android:scheme="msauth" />
             </intent-filter>
         </activity>
-        -->
+
     </application>
 
 </manifest>

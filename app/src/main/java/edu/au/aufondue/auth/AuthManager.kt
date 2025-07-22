@@ -1,11 +1,13 @@
 package edu.au.aufondue.auth
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
+import androidx.fragment.app.FragmentActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.UserProfileChangeRequest
+import com.microsoft.identity.client.*
+import com.microsoft.identity.client.exception.MsalException
+import edu.au.aufondue.R
 import edu.au.aufondue.api.RetrofitClient
 import edu.au.aufondue.utils.LanguageManager
 import kotlinx.coroutines.CoroutineScope
@@ -15,18 +17,247 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 class AuthManager private constructor(private val context: Context) {
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val auth = FirebaseAuth.getInstance()
+    private var msalApp: IMultipleAccountPublicClientApplication? = null
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
-    private val TAG = "AuthManager"
 
     companion object {
-        @SuppressLint("StaticFieldLeak")
-        @Volatile
+        private const val TAG = "AuthManager"
         private var instance: AuthManager? = null
 
+        // University domain validation
+        private const val REQUIRED_DOMAIN = "@au.edu"
+
+        // Microsoft OAuth scopes
+        private val SCOPES = arrayOf(
+            "User.Read",
+            "email",
+            "openid",
+            "profile"
+        )
+
+        @Synchronized
         fun getInstance(context: Context): AuthManager {
-            return instance ?: synchronized(this) {
-                instance ?: AuthManager(context.applicationContext).also { instance = it }
+            return instance ?: AuthManager(context.applicationContext).also { instance = it }
+        }
+    }
+
+    init {
+        initializeMSAL()
+    }
+
+    /**
+     * Initialize Microsoft Authentication Library (MSAL)
+     */
+    private fun initializeMSAL() {
+        try {
+            // Check if auth config file exists first
+            val authConfigResource = context.resources.openRawResource(R.raw.auth_config)
+            authConfigResource.close()
+
+            PublicClientApplication.createMultipleAccountPublicClientApplication(
+                context,
+                R.raw.auth_config, // MSAL configuration file
+                object : IPublicClientApplication.IMultipleAccountApplicationCreatedListener {
+                    override fun onCreated(application: IMultipleAccountPublicClientApplication) {
+                        msalApp = application
+                        Log.d(TAG, "MSAL initialized successfully")
+                    }
+
+                    override fun onError(exception: MsalException) {
+                        Log.e(TAG, "Failed to initialize MSAL", exception)
+                        // Create a fallback error handler
+                        msalApp = null
+                    }
+                }
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing MSAL - auth_config.json not found or invalid", e)
+            Log.e(TAG, "Make sure auth_config.json is generated in res/raw/ directory")
+            msalApp = null
+        }
+    }
+
+    /**
+     * Sign in with Microsoft account
+     */
+    fun signInWithMicrosoft(
+        onSuccess: (String) -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        val app = msalApp
+        if (app == null) {
+            onError(Exception("MSAL not initialized. Please try again."))
+            return
+        }
+
+        // Ensure we're running on a FragmentActivity
+        if (context !is FragmentActivity) {
+            onError(Exception("Microsoft authentication requires FragmentActivity context"))
+            return
+        }
+
+        coroutineScope.launch {
+            try {
+                // Check if there's an existing account
+                val accounts = app.accounts
+                val accountToUse = accounts.firstOrNull()
+
+                val result = if (accountToUse != null) {
+                    // Silent authentication for existing account using newer API
+                    Log.d(TAG, "Attempting silent authentication")
+                    val silentParameters = AcquireTokenSilentParameters.Builder()
+                        .withScopes(SCOPES.toList())
+                        .forAccount(accountToUse)
+                        .build()
+                    app.acquireTokenSilent(silentParameters)
+                } else {
+                    // Interactive authentication for new account
+                    Log.d(TAG, "Attempting interactive authentication")
+
+                    // Create acquire token parameters
+                    val parameters = AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(context)
+                        .withScopes(SCOPES.toList())
+                        .withCallback(object : AuthenticationCallback {
+                            override fun onSuccess(authenticationResult: IAuthenticationResult?) {
+                                authenticationResult?.let { result ->
+                                    handleMsalSuccess(result, onSuccess, onError)
+                                } ?: onError(Exception("Authentication result is null"))
+                            }
+
+                            override fun onError(exception: MsalException?) {
+                                Log.e(TAG, "MSAL authentication failed", exception)
+                                onError(exception ?: Exception("Unknown MSAL error"))
+                            }
+
+                            override fun onCancel() {
+                                onError(Exception("Authentication was cancelled"))
+                            }
+                        })
+                        .build()
+
+                    app.acquireToken(parameters)
+                    return@launch // Exit here as callback will handle the result
+                }
+
+                // Handle silent authentication result
+                handleMsalSuccess(result, onSuccess, onError)
+
+            } catch (e: MsalException) {
+                Log.e(TAG, "MSAL authentication failed", e)
+                when (e.errorCode) {
+                    "cancelled" -> onError(Exception("Authentication was cancelled"))
+                    "no_network" -> onError(Exception("No network connection available"))
+                    else -> onError(Exception("Microsoft authentication failed: ${e.message}"))
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Microsoft sign-in error", e)
+                onError(e)
+            }
+        }
+    }
+
+    /**
+     * Handle successful MSAL authentication
+     */
+    private fun handleMsalSuccess(
+        result: IAuthenticationResult,
+        onSuccess: (String) -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        coroutineScope.launch {
+            try {
+                // Validate the email domain
+                val email = result.account.username
+                if (!email.endsWith(REQUIRED_DOMAIN)) {
+                    onError(Exception("Please use your university Microsoft account (@au.edu)"))
+                    return@launch
+                }
+
+                // Sign in to Firebase using Microsoft OAuth token
+                val accessToken = result.accessToken
+                signInToFirebaseWithMicrosoft(accessToken, email, onSuccess, onError)
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Error processing MSAL result", e)
+                onError(e)
+            }
+        }
+    }
+
+    /**
+     * Sign in to Firebase using Microsoft OAuth token
+     * For Android MSAL + Firebase integration, we'll use a different approach
+     */
+    private suspend fun signInToFirebaseWithMicrosoft(
+        accessToken: String,
+        email: String,
+        onSuccess: (String) -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        try {
+            // For Android MSAL integration, we'll create a custom token approach
+            // or use the MSAL result directly without Firebase OAuth
+
+            // Option 1: Skip Firebase OAuth and use MSAL token directly
+            // This is more appropriate for mobile apps using MSAL
+
+            val displayName = email.substringBefore("@")
+
+            // Create/verify user in backend using the MSAL access token
+            createOrVerifyUser(email, displayName)
+
+            // Save user info locally
+            withContext(Dispatchers.Main) {
+                UserPreferences.getInstance(context).saveUserInfo(
+                    email,
+                    displayName
+                )
+
+                // Set default language to English on first login
+                val currentLanguage = LanguageManager.getSelectedLanguage(context)
+                if (currentLanguage.isEmpty()) {
+                    LanguageManager.setLocale(context, LanguageManager.ENGLISH)
+                    Log.d(TAG, "Set default language to English")
+                }
+            }
+
+            // Use the MSAL access token as our authentication token
+            onSuccess(accessToken)
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Microsoft authentication processing error", e)
+            onError(e)
+        }
+    }
+
+    /**
+     * Sign out from both MSAL and Firebase
+     */
+    fun signOut(onComplete: () -> Unit) {
+        coroutineScope.launch {
+            try {
+                // Sign out from Firebase
+                auth.signOut()
+
+                // Sign out from MSAL
+                val app = msalApp
+                if (app != null) {
+                    val accounts = app.accounts
+                    for (account in accounts) {
+                        app.removeAccount(account)
+                    }
+                }
+
+                // Clear local user preferences
+                UserPreferences.getInstance(context).clearUserInfo()
+
+                Log.d(TAG, "Sign out successful")
+                onComplete()
+            } catch (e: Exception) {
+                Log.e(TAG, "Sign out error", e)
+                onComplete() // Still complete even on error
             }
         }
     }
@@ -42,193 +273,20 @@ class AuthManager private constructor(private val context: Context) {
     fun isSignedIn(): Boolean = getCurrentUser() != null
 
     /**
-     * Sign in with email and password
+     * Get current user's email
      */
-    fun signInWithEmailPassword(
-        email: String,
-        password: String,
-        onSuccess: (String) -> Unit,
-        onError: (Exception) -> Unit
-    ) {
-        coroutineScope.launch {
-            try {
-
-                val result = auth.signInWithEmailAndPassword(email, password).await()
-                val user = result.user
-
-                if (user != null) {
-                    val idToken = user.getIdToken(false).await().token
-                    if (idToken != null) {
-                        // Create/verify user in backend
-                        createOrVerifyUser(email, user.displayName ?: email.substringBefore("@"))
-
-                        // Save user info locally
-                        withContext(Dispatchers.Main) {
-                            UserPreferences.getInstance(context).saveUserInfo(
-                                email,
-                                user.displayName ?: email.substringBefore("@")
-                            )
-
-                            // Set default language to English on first login
-                            val currentLanguage = LanguageManager.getSelectedLanguage(context)
-                            if (currentLanguage.isEmpty()) {
-                                LanguageManager.setLocale(context, LanguageManager.ENGLISH)
-                                Log.d(TAG, "Set default language to English")
-                            }
-                        }
-
-                        onSuccess(idToken)
-                    } else {
-                        onError(Exception("Failed to get authentication token"))
-                    }
-                } else {
-                    onError(Exception("Sign in failed"))
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Email/password sign in error", e)
-                onError(e)
-            }
-        }
-    }
+    fun getCurrentUserEmail(): String? = getCurrentUser()?.email
 
     /**
-     * Create account with email and password
+     * Get current user's display name
      */
-    fun createAccountWithEmailPassword(
-        email: String,
-        password: String,
-        displayName: String,
-        onSuccess: (String) -> Unit,
-        onError: (Exception) -> Unit
-    ) {
-        coroutineScope.launch {
-            try {
-
-                val result = auth.createUserWithEmailAndPassword(email, password).await()
-                val user = result.user
-
-                if (user != null) {
-                    // Update user profile with display name
-                    val profileUpdates = UserProfileChangeRequest.Builder()
-                        .setDisplayName(displayName)
-                        .build()
-
-                    user.updateProfile(profileUpdates).await()
-
-                    val idToken = user.getIdToken(false).await().token
-                    if (idToken != null) {
-                        // Create/verify user in backend
-                        createOrVerifyUser(email, displayName)
-
-                        // Save user info locally
-                        withContext(Dispatchers.Main) {
-                            UserPreferences.getInstance(context).saveUserInfo(email, displayName)
-
-                            // Set default language to English on first login
-                            LanguageManager.setLocale(context, LanguageManager.ENGLISH)
-                            Log.d(TAG, "Set default language to English")
-                        }
-
-                        onSuccess(idToken)
-                    } else {
-                        onError(Exception("Failed to get authentication token"))
-                    }
-                } else {
-                    onError(Exception("Account creation failed"))
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Account creation error", e)
-                onError(e)
-            }
-        }
-    }
-
-    /**
-     * Send password reset email
-     */
-    fun sendPasswordResetEmail(
-        email: String,
-        onSuccess: () -> Unit,
-        onError: (Exception) -> Unit
-    ) {
-        coroutineScope.launch {
-            try {
-
-                auth.sendPasswordResetEmail(email).await()
-                onSuccess()
-            } catch (e: Exception) {
-                Log.e(TAG, "Password reset error", e)
-                onError(e)
-            }
-        }
-    }
-
-    /**
-     * Update user profile
-     */
-    fun updateUserProfile(
-        displayName: String? = null,
-        onSuccess: () -> Unit,
-        onError: (Exception) -> Unit
-    ) {
-        coroutineScope.launch {
-            try {
-                val user = getCurrentUser()
-                if (user != null) {
-                    val profileUpdates = UserProfileChangeRequest.Builder()
-
-                    displayName?.let {
-                        profileUpdates.setDisplayName(it)
-                    }
-
-                    user.updateProfile(profileUpdates.build()).await()
-
-                    // Update local preferences
-                    UserPreferences.getInstance(context).saveUserInfo(
-                        user.email ?: "",
-                        displayName ?: user.displayName ?: ""
-                    )
-
-                    onSuccess()
-                } else {
-                    onError(Exception("No user signed in"))
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Profile update error", e)
-                onError(e)
-            }
-        }
-    }
-
-    /**
-     * Change user password
-     */
-    fun changePassword(
-        newPassword: String,
-        onSuccess: () -> Unit,
-        onError: (Exception) -> Unit
-    ) {
-        coroutineScope.launch {
-            try {
-                val user = getCurrentUser()
-                if (user != null) {
-                    user.updatePassword(newPassword).await()
-                    onSuccess()
-                } else {
-                    onError(Exception("No user signed in"))
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Password change error", e)
-                onError(e)
-            }
-        }
-    }
+    fun getCurrentUserDisplayName(): String? = getCurrentUser()?.displayName
 
     /**
      * Create or verify user in backend
      */
-    private suspend fun createOrVerifyUser(email: String, username: String): Long? {
-        return try {
+    private suspend fun createOrVerifyUser(email: String, username: String) {
+        try {
             withContext(Dispatchers.IO) {
                 Log.d(TAG, "Creating/verifying user in backend: $username, $email")
                 val response = RetrofitClient.apiService.createOrGetUser(username, email)
@@ -241,80 +299,66 @@ class AuthManager private constructor(private val context: Context) {
                 }
 
                 val responseBody = response.body()
-                if (responseBody?.success != true || responseBody.data == null) {
+                if (responseBody?.success != true) {
                     throw Exception(responseBody?.message ?: "Failed to create/verify user")
                 }
 
-                responseBody.data.id
+                Log.d(TAG, "User verified successfully")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error creating/verifying user", e)
-            throw e
+            Log.e(TAG, "Backend user verification failed", e)
+            // Don't throw here - continue with local authentication even if backend fails
         }
     }
 
     /**
-     * Sign out user
+     * Sign in with email and password (disabled - Microsoft only)
      */
-    fun signOut(onComplete: () -> Unit) {
-        Log.d(TAG, "Signing out user")
-
-        // Sign out from Firebase
-        auth.signOut()
-
-        // Clear local user info
-        UserPreferences.getInstance(context).clearUserInfo()
-        onComplete()
-    }
-
-    /**
-     * Delete user account
-     */
-    fun deleteAccount(onSuccess: () -> Unit, onError: (Exception) -> Unit) {
-        coroutineScope.launch {
-            try {
-                val user = getCurrentUser()
-                if (user != null) {
-                    // Delete from Firebase
-                    user.delete().await()
-
-                    // Clear local user info
-                    UserPreferences.getInstance(context).clearUserInfo()
-                    onSuccess()
-                } else {
-                    onError(Exception("No user to delete"))
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error deleting account", e)
-                onError(e)
-            }
-        }
-    }
-
-    /**
-     * Re-authenticate user (required for sensitive operations)
-     */
-    fun reauthenticateUser(
+    @Suppress("UNUSED_PARAMETER")
+    fun signInWithEmailPassword(
+        email: String,
         password: String,
+        onSuccess: (String) -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        onError(Exception("Please use Microsoft authentication"))
+    }
+
+    /**
+     * Create account with email and password (disabled - Microsoft only)
+     */
+    @Suppress("UNUSED_PARAMETER")
+    fun createAccountWithEmailPassword(
+        email: String,
+        password: String,
+        displayName: String,
+        onSuccess: (String) -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        onError(Exception("Account creation is disabled. Please use Microsoft authentication"))
+    }
+
+    /**
+     * Send password reset email (disabled - Microsoft only)
+     */
+    @Suppress("UNUSED_PARAMETER")
+    fun sendPasswordResetEmail(
+        email: String,
         onSuccess: () -> Unit,
         onError: (Exception) -> Unit
     ) {
-        coroutineScope.launch {
-            try {
-                val user = getCurrentUser()
-                if (user?.email != null) {
-                    val credential = com.google.firebase.auth.EmailAuthProvider
-                        .getCredential(user.email!!, password)
+        onError(Exception("Password reset not available. Please contact IT support"))
+    }
 
-                    user.reauthenticate(credential).await()
-                    onSuccess()
-                } else {
-                    onError(Exception("No user signed in"))
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Re-authentication error", e)
-                onError(e)
-            }
+    /**
+     * Delete account (simplified to sign out)
+     */
+    fun deleteAccount(
+        onSuccess: () -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        signOut {
+            onSuccess()
         }
     }
 }

@@ -70,7 +70,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                         // Fall back to UserPreferences (shouldn't happen in normal flow)
                         val prefs = UserPreferences.getInstance(getApplication())
                         val email = prefs.getUserEmail() ?: ""
-                        val displayName = prefs.getUsername() ?: email.split("@").firstOrNull() ?: ""
+                        val displayName = prefs.getUsername() ?: ""
 
                         // Get saved language preference
                         val savedLanguage = LanguageManager.getSelectedLanguage(getApplication())
@@ -141,7 +141,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             try {
                 withContext(Dispatchers.IO) {
                     authManager?.signOut {
-                        // This callback runs after Firebase sign out completes
+                        // This callback runs after sign out completes
                         onSignOutComplete()
                     }
                 }

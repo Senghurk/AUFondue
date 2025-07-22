@@ -151,9 +151,9 @@ dependencies {
     //implementation("com.google.maps.android:maps-compose:6.2.1")
 
 //    https://mvnrepository.com/artifact/com.microsoft.identity.client/msal
-//    implementation("com.microsoft.identity.client:msal:5.8.2"){
-//        exclude(group = "com.microsoft.device.display", module = "display-mask")
-//    }
+    implementation("com.microsoft.identity.client:msal:5.8.2"){
+        exclude(group = "com.microsoft.device.display", module = "display-mask")
+    }
 
 
     // Retrofit for API calls & okhttp
