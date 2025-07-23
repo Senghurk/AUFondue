@@ -277,83 +277,133 @@ private fun getCategoryText(category: String): String {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun IssuePhotosCard(photos: List<String>) {
-    val pagerState = rememberPagerState(pageCount = { photos.size })
     val context = LocalContext.current
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = "${stringResource(R.string.report_photos)} (${photos.size})",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = stringResource(R.string.report_photos),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(bottom = 12.dp)
             )
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(240.dp)
-            ) {
-                // Photo Pager
-                HorizontalPager(
-                    state = pagerState,
-                    modifier = Modifier.fillMaxSize()
-                ) { page ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 4.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        val originalUrl = photos[page]
-                        val fixedUrl = RetrofitClient.fixImageUrl(originalUrl)
-                        Log.d("IssuePhotosCard", "Loading image from URL: $fixedUrl")
+            if (photos.isEmpty()) {
+                Text(
+                    text = stringResource(R.string.no_photos),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            } else {
+                val pagerState = rememberPagerState(pageCount = { photos.size })
 
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            AsyncImage(
-                                model = ImageRequest.Builder(context)
-                                    .data(fixedUrl)
-                                    .diskCachePolicy(CachePolicy.ENABLED)
-                                    .memoryCachePolicy(CachePolicy.ENABLED)
-                                    .crossfade(true)
-                                    .build(),
-                                contentDescription = "${stringResource(R.string.report_photo)} ${page + 1}",
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(RoundedCornerShape(12.dp)),
-                                contentScale = ContentScale.Fit,
-                            )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(240.dp)
+                ) {
+                    // Photo Pager
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxSize()
+                    ) { page ->
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 4.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            val originalUrl = photos[page]
+                            val fixedUrl = RetrofitClient.fixImageUrl(originalUrl)
+                            Log.d("IssuePhotosCard", "Loading image from URL: $fixedUrl")
 
-                            // Loading indicator inside a 'remember mutableStateOf' to conditionally show
-                            var isLoading by remember { mutableStateOf(true) }
-                            var isError by remember { mutableStateOf(false) }
+                            // Use remember with the URL as key to reset states when URL changes
+                            var isLoading by remember(fixedUrl) { mutableStateOf(true) }
+                            var isError by remember(fixedUrl) { mutableStateOf(false) }
 
-                            LaunchedEffect(fixedUrl) {
-                                isLoading = true
-                                isError = false
-                            }
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(context)
+                                        .data(fixedUrl)
+                                        .diskCachePolicy(CachePolicy.ENABLED)
+                                        .memoryCachePolicy(CachePolicy.ENABLED)
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = "${stringResource(R.string.report_photo)} ${page + 1}",
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(RoundedCornerShape(12.dp)),
+                                    contentScale = ContentScale.Fit,
+                                    onLoading = {
+                                        // Called when image starts loading
+                                        isLoading = true
+                                        isError = false
+                                    },
+                                    onSuccess = {
+                                        // Called when image loads successfully
+                                        isLoading = false
+                                        isError = false
+                                        Log.d("IssuePhotosCard", "Image loaded successfully: $fixedUrl")
+                                    },
+                                    onError = {
+                                        // Called when image fails to load
+                                        isLoading = false
+                                        isError = true
+                                        Log.e("IssuePhotosCard", "Failed to load image: $fixedUrl", it.result.throwable)
+                                    }
+                                )
 
-                            if (isLoading) {
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(48.dp),
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
+                                // Show loading indicator only while loading
+                                if (isLoading) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(48.dp),
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+
+                                // Show error state if image failed to load
+                                if (isError) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(Color.LightGray)
+                                            .padding(16.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Error,
+                                            contentDescription = "Error",
+                                            modifier = Modifier.size(48.dp),
+                                            tint = Color.Gray
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            stringResource(R.string.error_loading_image),
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = Color.Gray
+                                        )
+                                    }
                                 }
                             }
 
-                            if (isError) {
+                            // Fallback for empty URLs
+                            if (originalUrl.isNullOrEmpty()) {
                                 Column(
                                     modifier = Modifier
                                         .fillMaxSize()
@@ -363,61 +413,39 @@ fun IssuePhotosCard(photos: List<String>) {
                                     verticalArrangement = Arrangement.Center
                                 ) {
                                     Text(
-                                        stringResource(R.string.error_loading_image),
+                                        stringResource(R.string.image_not_available),
                                         style = MaterialTheme.typography.bodyLarge
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "URL: $fixedUrl",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        fontSize = 8.sp,
-                                        maxLines = 2,
-                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
                             }
                         }
+                    }
 
-                        // Fallback text if image fails to load
-                        if (originalUrl.isNullOrEmpty()) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(Color.LightGray)
-                                    .padding(16.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Text(
-                                    stringResource(R.string.image_not_available),
-                                    style = MaterialTheme.typography.bodyLarge
+                    // Page Indicator
+                    if (photos.size > 1) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = 8.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            photos.indices.forEach { index ->
+                                Box(
+                                    modifier = Modifier
+                                        .padding(horizontal = 4.dp)
+                                        .size(8.dp)
+                                        .clip(CircleShape)
+                                        .background(
+                                            if (index == pagerState.currentPage) {
+                                                MaterialTheme.colorScheme.primary
+                                            } else {
+                                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                                            }
+                                        )
                                 )
                             }
                         }
-                    }
-                }
-
-                // Page Indicator
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 8.dp),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    repeat(photos.size) { index ->
-                        Box(
-                            modifier = Modifier
-                                .padding(horizontal = 4.dp)
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    if (pagerState.currentPage == index)
-                                        MaterialTheme.colorScheme.primary
-                                    else
-                                        Color.Gray.copy(alpha = 0.5f)
-                                )
-                        )
                     }
                 }
             }
