@@ -152,20 +152,4 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             }
         }
     }
-
-    fun deleteAccount(onSuccess: () -> Unit, onError: (String) -> Unit) {
-        viewModelScope.launch {
-            try {
-                authManager?.deleteAccount(
-                    onSuccess = onSuccess,
-                    onError = { exception ->
-                        onError(exception.message ?: "Failed to delete account")
-                    }
-                )
-            } catch (e: Exception) {
-                Log.e("ProfileViewModel", "Error deleting account", e)
-                onError(e.message ?: "An error occurred while deleting account")
-            }
-        }
-    }
 }
