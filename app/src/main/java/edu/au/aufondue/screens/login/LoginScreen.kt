@@ -1,5 +1,4 @@
 package edu.au.aufondue.screens.login
-
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*

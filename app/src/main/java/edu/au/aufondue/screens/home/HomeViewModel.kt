@@ -208,8 +208,6 @@ class HomeViewModel : ViewModel() {
             else -> "$category Issue"
         }
 
-        // FIXED: Use server timestamp instead of local device timestamp
-        // The createdAt field from the server already contains the correct submission time
         val timeAgo = try {
             TimeUtils.formatTimeAgo(this.createdAt)
         } catch (e: Exception) {

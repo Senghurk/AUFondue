@@ -1,6 +1,3 @@
-// Location: app/src/main/java/edu/au/aufondue/navigation/NavGraph.kt
-// UPDATE THIS EXISTING FILE - REPLACE ALL CONTENT
-
 package edu.au.aufondue.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -21,6 +18,9 @@ sealed class Screen(val route: String) {
     object Notification : Screen("notification")
     object NotificationDetails : Screen("notification_details/{issueId}") {
         fun createRoute(issueId: Long): String = "notification_details/$issueId"
+    }
+    object IssueDetails : Screen("issue_details/{issueId}") {
+        fun createRoute(issueId: Long): String = "issue_details/$issueId"
     }
 }
 

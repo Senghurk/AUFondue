@@ -1,8 +1,4 @@
-// Location: app/src/main/java/edu/au/aufondue/screens/home/HomeScreen.kt
-// COMPLETE UPDATED FILE
-
 package edu.au.aufondue.screens.home
-
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
@@ -43,6 +39,8 @@ import coil3.transform.CircleCropTransformation
 import edu.au.aufondue.R
 import edu.au.aufondue.auth.UserPreferences
 import java.util.*
+import androidx.compose.foundation.clickable
+
 
 data class QuickStatCard(
     val title: String,
@@ -258,7 +256,12 @@ fun HomeScreen(
                         }
                     } else {
                         items(reports) { report ->
-                            ReportCard(report = report)
+                            ReportCard(
+                                report = report,
+                                onReportClick = { issueId ->
+                                    navController.navigate("issue_details/$issueId")
+                                }
+                            )
                         }
                     }
                 }
@@ -404,9 +407,14 @@ private fun QuickStatCard(stat: QuickStatCard) {
 }
 
 @Composable
-private fun ReportCard(report: ReportItem) {
+private fun ReportCard(
+    report: ReportItem,
+    onReportClick: (String) -> Unit  // Note: String, not Long as per existing ReportItem.id
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onReportClick(report.id) },  // ADD THIS LINE
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(

@@ -190,6 +190,19 @@ class MainActivity : ComponentActivity() {
                                         onNavigateBack = { navController.popBackStack() }
                                     )
                                 }
+
+                                composable(
+                                    route = "issue_details/{issueId}",
+                                    arguments = listOf(navArgument("issueId") { type = NavType.StringType })  // String, not Long
+                                ) { backStackEntry ->
+                                    val issueId = backStackEntry.arguments?.getString("issueId") ?: ""
+                                    // Convert String to Long for the NotificationDetailsScreen
+                                    val issueIdLong = issueId.toLongOrNull() ?: 0L
+                                    NotificationDetailsScreen(
+                                        issueId = issueIdLong,
+                                        onNavigateBack = { navController.popBackStack() }
+                                    )
+                                }
                             }
                         }
                     }
