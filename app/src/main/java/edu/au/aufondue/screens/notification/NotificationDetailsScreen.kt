@@ -454,49 +454,48 @@ fun IssuePhotosCard(photos: List<String>) {
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
-        )
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(16.dp)
         ) {
-            // Header with status and date
+            // Header with date and status
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "${stringResource(R.string.status)}: ${getStatusText(update.status)}",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = when (update.status) {
-                        "COMPLETED" -> Color(0xFF1B5E20)
-                        "IN PROGRESS" -> Color(0xFF0D47A1)
-                        else -> Color(0xFF7A4F01)
-                    }
-                )
-                Text(
                     text = viewModel.formatDateTime(update.updateTime),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
                 )
+
+                Surface(
+                    shape = RoundedCornerShape(4.dp),
+                    color = getStatusColor(update.status).copy(alpha = 0.1f)
+                ) {
+                    Text(
+                        text = getStatusText(update.status),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = getStatusColor(update.status),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
             }
 
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            // Comments
+            // Comment - handle nullable comment
             if (!update.comment.isNullOrEmpty()) {
                 Text(
-                    text = "${stringResource(R.string.comments)}:",
+                    text = stringResource(R.string.comments),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Medium
                 )
@@ -523,6 +522,7 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp)
+                        .padding(top = 8.dp)
                 ) {
                     HorizontalPager(
                         state = pagerState,
@@ -538,6 +538,10 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                             val fixedUrl = RetrofitClient.fixImageUrl(originalUrl)
                             Log.d("UpdateCard", "Loading update image from URL: $fixedUrl")
 
+                            // Use remember with the URL as key to reset states when URL changes
+                            var isLoading by remember(fixedUrl) { mutableStateOf(true) }
+                            var isError by remember(fixedUrl) { mutableStateOf(false) }
+
                             Box(modifier = Modifier.fillMaxSize()) {
                                 AsyncImage(
                                     model = ImageRequest.Builder(context)
@@ -551,29 +555,39 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                                         .fillMaxSize()
                                         .clip(RoundedCornerShape(12.dp)),
                                     contentScale = ContentScale.Fit,
+                                    onLoading = {
+                                        // Called when image starts loading
+                                        isLoading = true
+                                        isError = false
+                                    },
+                                    onSuccess = {
+                                        // Called when image loads successfully
+                                        isLoading = false
+                                        isError = false
+                                        Log.d("UpdateCard", "Update image loaded successfully: $fixedUrl")
+                                    },
+                                    onError = {
+                                        // Called when image fails to load
+                                        isLoading = false
+                                        isError = true
+                                        Log.e("UpdateCard", "Failed to load update image: $fixedUrl", it.result.throwable)
+                                    }
                                 )
 
-                                // Loading indicator inside a 'remember mutableStateOf' to conditionally show
-                                var isLoading by remember { mutableStateOf(true) }
-                                var isError by remember { mutableStateOf(false) }
-
-                                LaunchedEffect(fixedUrl) {
-                                    isLoading = true
-                                    isError = false
-                                }
-
+                                // Show loading indicator only while loading
                                 if (isLoading) {
                                     Box(
                                         modifier = Modifier.fillMaxSize(),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         CircularProgressIndicator(
-                                            modifier = Modifier.size(48.dp),
+                                            modifier = Modifier.size(40.dp),
                                             color = MaterialTheme.colorScheme.primary
                                         )
                                     }
                                 }
 
+                                // Show error state if image failed to load
                                 if (isError) {
                                     Column(
                                         modifier = Modifier
@@ -583,24 +597,25 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         verticalArrangement = Arrangement.Center
                                     ) {
+                                        Icon(
+                                            Icons.Default.Error,
+                                            contentDescription = "Error",
+                                            modifier = Modifier.size(32.dp),
+                                            tint = Color.Gray
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
                                         Text(
                                             stringResource(R.string.error_loading_image),
-                                            style = MaterialTheme.typography.bodyLarge
-                                        )
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Text(
-                                            text = "URL: $fixedUrl",
                                             style = MaterialTheme.typography.bodySmall,
-                                            fontSize = 8.sp,
-                                            maxLines = 2,
-                                            overflow = TextOverflow.Ellipsis
+                                            color = Color.Gray,
+                                            textAlign = TextAlign.Center
                                         )
                                     }
                                 }
                             }
 
-                            // Fallback text if image fails to load
-                            if (originalUrl.isNullOrEmpty()) {
+                            // Fallback for empty URLs
+                            if (originalUrl.isEmpty()) {
                                 Column(
                                     modifier = Modifier
                                         .fillMaxSize()
@@ -611,14 +626,15 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                                 ) {
                                     Text(
                                         stringResource(R.string.image_not_available),
-                                        style = MaterialTheme.typography.bodyLarge
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.Gray
                                     )
                                 }
                             }
                         }
                     }
 
-                    // Page Indicator for photos
+                    // Page Indicator for multiple photos
                     if (update.photoUrls.size > 1) {
                         Row(
                             modifier = Modifier
@@ -627,17 +643,18 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                                 .padding(bottom = 8.dp),
                             horizontalArrangement = Arrangement.Center
                         ) {
-                            repeat(update.photoUrls.size) { index ->
+                            update.photoUrls.indices.forEach { index ->
                                 Box(
                                     modifier = Modifier
-                                        .padding(horizontal = 4.dp)
-                                        .size(8.dp)
+                                        .padding(horizontal = 2.dp)
+                                        .size(6.dp)
                                         .clip(CircleShape)
                                         .background(
-                                            if (pagerState.currentPage == index)
+                                            if (index == pagerState.currentPage) {
                                                 MaterialTheme.colorScheme.primary
-                                            else
-                                                Color.Gray.copy(alpha = 0.5f)
+                                            } else {
+                                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                                            }
                                         )
                                 )
                             }
@@ -646,5 +663,16 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                 }
             }
         }
+    }
+}
+
+// Helper function to get status color
+@Composable
+private fun getStatusColor(status: String): Color {
+    return when (status) {
+        "PENDING" -> Color(0xFFFFA726) // Orange
+        "IN PROGRESS" -> Color(0xFF42A5F5) // Blue
+        "COMPLETED" -> Color(0xFF66BB6A) // Green
+        else -> MaterialTheme.colorScheme.onSurface
     }
 }
