@@ -20,10 +20,6 @@
 
     <!-- Login Screen -->
     <string name="login">เข้าสู่ระบบ</string>
-    <string name="email">อีเมล</string>
-    <string name="password">รหัสผ่าน</string>
-    <string name="enter_email">กรอกอีเมลของคุณ</string>
-    <string name="enter_password">กรอกรหัสผ่านของคุณ</string>
     <string name="login_error">เข้าสู่ระบบไม่สำเร็จ กรุณาตรวจสอบข้อมูลประจำตัว</string>
     <string name="login_success">เข้าสู่ระบบสำเร็จ!</string>
     <string name="logging_in">กำลังเข้าสู่ระบบ...</string>
