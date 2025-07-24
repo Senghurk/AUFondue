@@ -1,5 +1,6 @@
 package edu.au.aufondue.screens.login
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -25,6 +26,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     val state: StateFlow<LoginState> = _state.asStateFlow()
 
     private var authManager: AuthManager? = null
+    @SuppressLint("StaticFieldLeak")
     private var activity: ComponentActivity? = null
 
     companion object {

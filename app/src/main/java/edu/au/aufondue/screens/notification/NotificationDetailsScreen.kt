@@ -1,8 +1,4 @@
-// Location: app/src/main/java/edu/au/aufondue/screens/notification/NotificationDetailsScreen.kt
-// UPDATE THIS EXISTING FILE - REPLACE ALL CONTENT
-
 package edu.au.aufondue.screens.notification
-
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -29,9 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
@@ -171,22 +165,6 @@ fun NotificationDetailsScreen(
                                     verticalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
                                     // Location
-                                    Column {
-                                        Text(
-                                            text = stringResource(R.string.location),
-                                            style = MaterialTheme.typography.labelLarge,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Text(
-                                            text = if (issue.usingCustomLocation)
-                                                issue.customLocation ?: stringResource(R.string.not_specified)
-                                            else
-                                                "${stringResource(R.string.latitude)}: ${issue.latitude}, ${stringResource(R.string.longitude)}: ${issue.longitude}",
-                                            style = MaterialTheme.typography.bodyLarge
-                                        )
-                                    }
-
-                                    Divider()
 
                                     // Category
                                     Column {
@@ -403,7 +381,7 @@ fun IssuePhotosCard(photos: List<String>) {
                             }
 
                             // Fallback for empty URLs
-                            if (originalUrl.isNullOrEmpty()) {
+                            if (originalUrl.isEmpty()) {
                                 Column(
                                     modifier = Modifier
                                         .fillMaxSize()

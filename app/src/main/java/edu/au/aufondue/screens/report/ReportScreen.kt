@@ -67,7 +67,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-import coil3.compose.AsyncImage
 import coil3.request.crossfade
 import edu.au.aufondue.R
 import java.text.SimpleDateFormat
@@ -102,7 +101,7 @@ fun ReportScreen(
         }
     }
 
-    // FIXED: Multiple photo selection from gallery
+    // Multiple photo selection from gallery
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
     ) { uris: List<Uri> ->

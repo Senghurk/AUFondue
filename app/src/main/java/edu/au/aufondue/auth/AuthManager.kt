@@ -142,43 +142,4 @@ class AuthManager private constructor(private val context: Context) {
         UserPreferences.getInstance(context).clearUserInfo()
         onComplete()
     }
-
-    /**
-     * Delete user account
-     */
-    fun deleteAccount(onSuccess: () -> Unit, onError: (Exception) -> Unit) {
-        coroutineScope.launch {
-            try {
-                val user = getCurrentUser()
-                if (user != null) {
-                    // Delete from Firebase
-                    user.delete().await()
-
-                    // Clear local user info
-                    UserPreferences.getInstance(context).clearUserInfo()
-                    onSuccess()
-                } else {
-                    onError(Exception("No user to delete"))
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error deleting account", e)
-                onError(e)
-            }
-        }
-    }
-
-    /**
-     * Re-authenticate user with Microsoft
-     */
-    fun reauthenticateUser(
-        activity: ComponentActivity,
-        onSuccess: () -> Unit,
-        onError: (Exception) -> Unit
-    ) {
-        signInWithMicrosoft(
-            activity = activity,
-            onSuccess = { onSuccess() },
-            onError = onError
-        )
-    }
 }

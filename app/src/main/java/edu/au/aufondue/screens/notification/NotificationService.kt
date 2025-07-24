@@ -8,7 +8,6 @@ import edu.au.aufondue.screens.notification.Notification
 import edu.au.aufondue.screens.notification.NotificationType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.time.Instant
 import java.time.ZoneId
 
 /**

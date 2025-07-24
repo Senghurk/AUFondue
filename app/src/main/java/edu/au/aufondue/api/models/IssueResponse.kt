@@ -1,5 +1,4 @@
 package edu.au.aufondue.api.models
-
 import com.squareup.moshi.JsonClass
 import java.time.LocalDateTime
 
@@ -9,8 +8,6 @@ data class IssueResponse(
     val description: String,
     val category: String,
     val customCategory: String?,
-    val latitude: Double?,
-    val longitude: Double?,
     val customLocation: String?,
     val status: String,
     val photoUrls: List<String>,

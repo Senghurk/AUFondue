@@ -1,5 +1,4 @@
 package edu.au.aufondue.api
-
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -30,14 +29,11 @@ class LocalDateTimeAdapter {
     @FromJson
     fun fromJson(value: String): LocalDateTime {
         return try {
-            // parse as ISO datetime with timezone
             try {
                 val zonedDateTime = ZonedDateTime.parse(value)
                 Log.d("LocalDateTimeAdapter", "Parsed ZonedDateTime: $zonedDateTime")
-                // Convert to device's timezone
                 zonedDateTime.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime()
             } catch (e: DateTimeParseException) {
-                // try parsing as local datetime
                 try {
                     val localDateTime = LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                     Log.d("LocalDateTimeAdapter", "Parsed LocalDateTime: $localDateTime")
@@ -48,13 +44,12 @@ class LocalDateTimeAdapter {
                         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                         LocalDateTime.parse(value, formatter)
                     } catch (e3: Exception) {
-                        throw e3 // re-throw if all parsing  fail
+                        throw e3
                     }
                 }
             }
         } catch (e: Exception) {
             Log.e("LocalDateTimeAdapter", "Error parsing date: $value", e)
-            // Fallback to current time if parsing fails
             LocalDateTime.now()
         }
     }
@@ -63,7 +58,7 @@ class LocalDateTimeAdapter {
 object RetrofitClient {
     private const val TAG = "RetrofitClient"
 
-    //  easy switching during development/debugging
+    //  Fast Switching during development/debugging
     private const val BASE_URL_LOCAL = "http://10.0.2.2:8080/"
     private const val BASE_URL_PROD = "https://aufondue-backend.kindisland-399ef298.southeastasia.azurecontainerapps.io/"
 
@@ -92,7 +87,6 @@ object RetrofitClient {
                 val request = chain.request()
                 Log.d(TAG, "Making request: ${request.method} ${request.url}")
 
-                // Add detailed request logging
                 if (request.body != null) {
                     Log.d(TAG, "Request has body")
                 }
@@ -101,7 +95,6 @@ object RetrofitClient {
                     val response = chain.proceed(request)
                     Log.d(TAG, "Got response: ${response.code} for ${request.url}")
 
-                    // Log response details for debugging
                     if (!response.isSuccessful) {
                         val errorBody = response.body?.string()
                         Log.e(TAG, "Error response: $errorBody")
@@ -117,7 +110,6 @@ object RetrofitClient {
                     throw e
                 }
             }
-            // Increase timeouts for large file uploads
             .connectTimeout(60, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)
@@ -139,9 +131,7 @@ object RetrofitClient {
         retrofit.create(ApiService::class.java)
     }
 
-    /**
-     * Fixes image URL issues ( proper domain and SAS token )
-     */
+
     fun fixImageUrl(url: String): String {
         Log.d(TAG, "Original image URL: $url")
 

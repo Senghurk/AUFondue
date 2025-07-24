@@ -1,7 +1,5 @@
 package edu.au.aufondue.screens.profile
-
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -17,7 +15,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil3.annotation.ExperimentalCoilApi
 import coil3.compose.SubcomposeAsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -26,7 +23,6 @@ import coil3.transform.CircleCropTransformation
 import edu.au.aufondue.R
 import edu.au.aufondue.utils.LanguageManager
 
-@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun ProfileScreen(
     onSignOut: () -> Unit,

@@ -1,5 +1,4 @@
 package edu.au.aufondue.auth
-
 import android.content.Context
 import android.content.SharedPreferences
 
@@ -40,15 +39,6 @@ class UserPreferences private constructor(context: Context) {
     }
 
     /**
-     * Save user ID
-     */
-    fun saveUserId(userId: Long) {
-        prefs.edit()
-            .putLong(KEY_USER_ID, userId)
-            .apply()
-    }
-
-    /**
      * Get user email
      */
     fun getUserEmail(): String? {
@@ -63,36 +53,6 @@ class UserPreferences private constructor(context: Context) {
     }
 
     /**
-     * Get user ID
-     */
-    fun getUserId(): Long {
-        return prefs.getLong(KEY_USER_ID, -1L)
-    }
-
-    /**
-     * Check if user is logged in
-     */
-    fun isLoggedIn(): Boolean {
-        return prefs.getBoolean(KEY_IS_LOGGED_IN, false)
-    }
-
-    /**
-     * Save FCM token
-     */
-    fun saveFcmToken(token: String) {
-        prefs.edit()
-            .putString(KEY_FCM_TOKEN, token)
-            .apply()
-    }
-
-    /**
-     * Get FCM token
-     */
-    fun getFcmToken(): String? {
-        return prefs.getString(KEY_FCM_TOKEN, null)
-    }
-
-    /**
      * Clear all user information (for logout)
      */
     fun clearUserInfo() {
@@ -103,12 +63,5 @@ class UserPreferences private constructor(context: Context) {
             .remove(KEY_FCM_TOKEN)
             .putBoolean(KEY_IS_LOGGED_IN, false)
             .apply()
-    }
-
-    /**
-     * Clear all preferences
-     */
-    fun clearAll() {
-        prefs.edit().clear().apply()
     }
 }

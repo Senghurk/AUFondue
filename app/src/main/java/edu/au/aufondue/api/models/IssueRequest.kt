@@ -15,9 +15,3 @@ data class IssueRequest(
     val userEmail: String,
     val userName: String
 )
-
-@JsonClass(generateAdapter = true)
-data class LocationData(
-    val latitude: Double,
-    val longitude: Double
-)

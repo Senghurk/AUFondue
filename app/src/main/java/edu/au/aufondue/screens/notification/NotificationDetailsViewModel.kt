@@ -122,8 +122,4 @@ class NotificationDetailsViewModel : ViewModel() {
         val formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm")
         return dateTime.format(formatter)
     }
-
-    fun clearError() {
-        _state.update { it.copy(error = null) }
-    }
 }

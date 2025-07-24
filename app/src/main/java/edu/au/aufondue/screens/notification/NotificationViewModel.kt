@@ -1,7 +1,9 @@
 package edu.au.aufondue.screens.notification
 
 import android.content.Context
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import edu.au.aufondue.api.NotificationService
@@ -28,8 +30,6 @@ enum class NotificationType {
     NEW_REPORT,
     ISSUE_RESOLVED,
     UPDATE_REQUEST,
-    SHARE,
-    SUCCESS
 }
 
 class NotificationViewModel : ViewModel() {
@@ -49,6 +49,7 @@ class NotificationViewModel : ViewModel() {
     // Create notification service
     private val notificationService = NotificationService()
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun loadNotifications(context: Context) {
         viewModelScope.launch {
             try {
@@ -81,9 +82,5 @@ class NotificationViewModel : ViewModel() {
                 _isLoading.value = false
             }
         }
-    }
-
-    fun clearError() {
-        _error.value = null
     }
 }

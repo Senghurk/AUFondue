@@ -44,10 +44,10 @@ fun LoginScreen(
         }
     }
 
-    // Show error as snackbar
+    // Show error as snack bar
     state.error?.let { error ->
         LaunchedEffect(error) {
-            // You can show a snackbar here if needed
+            // You can show a snack bar here if needed
         }
     }
 

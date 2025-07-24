@@ -66,8 +66,7 @@ fun HomeScreen(
     val username = userPreferences.getUsername() ?: stringResource(R.string.nav_profile)
     val userEmail = userPreferences.getUserEmail() ?: ""
 
-    // Time-based greeting using string resources - moved outside remember
-    // Enhanced time-based greeting that considers user's timezone and internet time
+    // Time-based greeting that considers user's timezone and internet time
     val greeting = remember {
         try {
             // Get current time in user's timezone (automatically syncs with internet time)
@@ -252,7 +251,7 @@ fun HomeScreen(
 
                     if (reports.isEmpty()) {
                         item {
-                            EmptyReportsSection(onNavigateToReport = onNavigateToReport)
+                            EmptyReportsSection()
                         }
                     } else {
                         items(reports) { report ->
@@ -414,7 +413,7 @@ private fun ReportCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onReportClick(report.id) },  // ADD THIS LINE
+            .clickable { onReportClick(report.id) },
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(
@@ -494,7 +493,7 @@ private fun ErrorSection(
 }
 
 @Composable
-private fun EmptyReportsSection(onNavigateToReport: () -> Unit) {
+private fun EmptyReportsSection() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp)

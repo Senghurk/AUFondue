@@ -152,7 +152,7 @@ class MainActivity : ComponentActivity() {
                                         onNavigateBack = {
                                             navController.navigateUp()
                                         },
-                                        onBuildingClick = { buildingId ->
+                                        onBuildingClick = {
                                             // Optional: Navigate to report screen with pre-filled location
                                             // navController.navigate("${Screen.Report.route}?buildingId=$buildingId")
                                         }

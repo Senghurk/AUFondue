@@ -1,5 +1,6 @@
 package edu.au.aufondue.screens.home
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
 import android.util.Log
@@ -33,6 +34,7 @@ data class ReportItem(
 class HomeViewModel : ViewModel() {
     private val _state = MutableStateFlow(HomeScreenState())
     val state: StateFlow<HomeScreenState> = _state.asStateFlow()
+    @SuppressLint("StaticFieldLeak")
     private var context: Context? = null
     private val TAG = "HomeViewModel"
 
@@ -91,7 +93,6 @@ class HomeViewModel : ViewModel() {
 
     private suspend fun getUserId(email: String, username: String): Long? {
         return try {
-            // Use createOrGetUser which is the correct API endpoint
             val response = RetrofitClient.apiService.createOrGetUser(username, email)
             if (response.isSuccessful) {
                 val userResponse = response.body()
