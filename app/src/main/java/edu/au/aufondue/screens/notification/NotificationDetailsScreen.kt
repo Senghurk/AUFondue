@@ -2,9 +2,18 @@ package edu.au.aufondue.screens.notification
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -14,8 +23,27 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,9 +62,10 @@ import coil3.request.crossfade
 import edu.au.aufondue.R
 import edu.au.aufondue.api.RetrofitClient
 import edu.au.aufondue.api.models.UpdateResponse
+import edu.au.aufondue.components.PhotoViewerDialog
 
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationDetailsScreen(
     issueId: Long,
@@ -259,6 +288,10 @@ private fun getCategoryText(category: String): String {
 fun IssuePhotosCard(photos: List<String>) {
     val context = LocalContext.current
 
+    // State for photo viewer
+    var showPhotoViewer by remember { mutableStateOf(false) }
+    var selectedPhotoIndex by remember { mutableIntStateOf(0) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -298,7 +331,11 @@ fun IssuePhotosCard(photos: List<String>) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(horizontal = 4.dp),
+                                .padding(horizontal = 4.dp)
+                                .clickable {
+                                    selectedPhotoIndex = page
+                                    showPhotoViewer = true
+                                },
                             contentAlignment = Alignment.Center
                         ) {
                             val originalUrl = photos[page]
@@ -323,18 +360,15 @@ fun IssuePhotosCard(photos: List<String>) {
                                         .clip(RoundedCornerShape(12.dp)),
                                     contentScale = ContentScale.Fit,
                                     onLoading = {
-                                        // Called when image starts loading
                                         isLoading = true
                                         isError = false
                                     },
                                     onSuccess = {
-                                        // Called when image loads successfully
                                         isLoading = false
                                         isError = false
                                         Log.d("IssuePhotosCard", "Image loaded successfully: $fixedUrl")
                                     },
                                     onError = {
-                                        // Called when image fails to load
                                         isLoading = false
                                         isError = true
                                         Log.e("IssuePhotosCard", "Failed to load image: $fixedUrl", it.result.throwable)
@@ -429,11 +463,24 @@ fun IssuePhotosCard(photos: List<String>) {
             }
         }
     }
+
+    // Photo Viewer Dialog
+    if (showPhotoViewer) {
+        PhotoViewerDialog(
+            photos = photos,
+            initialPage = selectedPhotoIndex,
+            onDismiss = { showPhotoViewer = false }
+        )
+    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) {
+    // State for photo viewer
+    var showPhotoViewer by remember { mutableStateOf(false) }
+    var selectedPhotoIndex by remember { mutableIntStateOf(0) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -509,7 +556,11 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(horizontal = 4.dp),
+                                .padding(horizontal = 4.dp)
+                                .clickable {
+                                    selectedPhotoIndex = page
+                                    showPhotoViewer = true
+                                },
                             contentAlignment = Alignment.Center
                         ) {
                             val originalUrl = update.photoUrls[page]
@@ -534,18 +585,15 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                                         .clip(RoundedCornerShape(12.dp)),
                                     contentScale = ContentScale.Fit,
                                     onLoading = {
-                                        // Called when image starts loading
                                         isLoading = true
                                         isError = false
                                     },
                                     onSuccess = {
-                                        // Called when image loads successfully
                                         isLoading = false
                                         isError = false
                                         Log.d("UpdateCard", "Update image loaded successfully: $fixedUrl")
                                     },
                                     onError = {
-                                        // Called when image fails to load
                                         isLoading = false
                                         isError = true
                                         Log.e("UpdateCard", "Failed to load update image: $fixedUrl", it.result.throwable)
@@ -641,6 +689,15 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                 }
             }
         }
+    }
+
+    // Photo Viewer Dialog
+    if (showPhotoViewer) {
+        PhotoViewerDialog(
+            photos = update.photoUrls,
+            initialPage = selectedPhotoIndex,
+            onDismiss = { showPhotoViewer = false }
+        )
     }
 }
 
