@@ -22,8 +22,23 @@ object MediaUtils {
         if (url.isBlank()) return false
         
         return try {
-            val extension = url.substringAfterLast('.', "").lowercase()
-            videoExtensions.contains(extension)
+            // Remove query parameters and SAS tokens for extension detection
+            val cleanUrl = url.split('?')[0]
+            val extension = cleanUrl.substringAfterLast('.', "").lowercase()
+            
+            // Check file extension
+            if (videoExtensions.contains(extension)) {
+                return true
+            }
+            
+            // Check for Azure Blob Storage video patterns (if no extension)
+            if (url.contains("blob.core.windows.net")) {
+                // Try to detect from filename patterns or blob metadata
+                val fileName = cleanUrl.substringAfterLast("/").lowercase()
+                return videoExtensions.any { fileName.contains(it) }
+            }
+            
+            false
         } catch (e: Exception) {
             false
         }

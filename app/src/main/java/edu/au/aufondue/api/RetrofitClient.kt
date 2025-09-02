@@ -133,7 +133,7 @@ object RetrofitClient {
 
 
     fun fixImageUrl(url: String): String {
-        Log.d(TAG, "Original image URL: $url")
+        Log.d(TAG, "Original media URL: $url")
 
         if (url.isEmpty()) return ""
 
@@ -156,4 +156,7 @@ object RetrofitClient {
 
         return "$DOMAIN/$url"
     }
+
+    // Alias for better semantic naming
+    fun fixMediaUrl(url: String): String = fixImageUrl(url)
 }

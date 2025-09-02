@@ -62,6 +62,7 @@ import coil3.request.crossfade
 import edu.au.aufondue.R
 import edu.au.aufondue.api.RetrofitClient
 import edu.au.aufondue.api.models.UpdateResponse
+import edu.au.aufondue.components.FullScreenVideoDialog
 import edu.au.aufondue.components.PhotoViewerDialog
 import edu.au.aufondue.components.VideoPlayer
 import edu.au.aufondue.utils.MediaUtils
@@ -236,10 +237,14 @@ fun NotificationDetailsScreen(
                             }
                         }
 
-                        // Original Photos
-                        if (issue.photoUrls.isNotEmpty()) {
+                        // Original Photos and Videos
+                        val allMediaUrls = issue.photoUrls + issue.videoUrls
+                        if (allMediaUrls.isNotEmpty()) {
                             item {
-                                IssuePhotosCard(photos = issue.photoUrls)
+                                IssuePhotosCard(
+                                    photos = allMediaUrls,
+                                    videoUrls = issue.videoUrls // Pass video URLs separately for better detection
+                                )
                             }
                         }
 
@@ -287,12 +292,16 @@ private fun getCategoryText(category: String): String {
 }
 
 @Composable
-fun IssuePhotosCard(photos: List<String>) {
+fun IssuePhotosCard(photos: List<String>, videoUrls: List<String> = emptyList()) {
     val context = LocalContext.current
 
     // State for photo viewer
     var showPhotoViewer by remember { mutableStateOf(false) }
     var selectedPhotoIndex by remember { mutableIntStateOf(0) }
+    
+    // State for full screen video
+    var showFullScreenVideo by remember { mutableStateOf(false) }
+    var fullScreenVideoUrl by remember { mutableStateOf("") }
 
     Card(
         modifier = Modifier
@@ -341,10 +350,21 @@ fun IssuePhotosCard(photos: List<String>) {
                             contentAlignment = Alignment.Center
                         ) {
                             val originalUrl = photos[page]
-                            val fixedUrl = RetrofitClient.fixImageUrl(originalUrl)
-                            val mediaType = MediaUtils.getMediaType(fixedUrl)
+                            val fixedUrl = RetrofitClient.fixMediaUrl(originalUrl)
                             
-                            Log.d("IssuePhotosCard", "Loading media from URL: $fixedUrl, type: $mediaType")
+                            // Determine media type - prioritize videoUrls array over extension detection
+                            val isKnownVideo = videoUrls.any { it == originalUrl }
+                            val mediaType = if (isKnownVideo) {
+                                MediaUtils.MediaType.VIDEO
+                            } else {
+                                MediaUtils.getMediaType(fixedUrl)
+                            }
+                            
+                            Log.d("IssuePhotosCard", "Original URL: $originalUrl")
+                            Log.d("IssuePhotosCard", "Fixed URL: $fixedUrl")
+                            Log.d("IssuePhotosCard", "Is known video: $isKnownVideo")
+                            Log.d("IssuePhotosCard", "Detected media type: $mediaType")
+                            Log.d("IssuePhotosCard", "URL extension: ${fixedUrl.substringAfterLast('.', "")}")
 
                             when (mediaType) {
                                 MediaUtils.MediaType.VIDEO -> {
@@ -355,7 +375,11 @@ fun IssuePhotosCard(photos: List<String>) {
                                             .fillMaxSize()
                                             .clip(RoundedCornerShape(12.dp)),
                                         autoPlay = false,
-                                        showControls = true
+                                        showControls = true,
+                                        onFullScreenClick = {
+                                            fullScreenVideoUrl = fixedUrl
+                                            showFullScreenVideo = true
+                                        }
                                     )
                                 }
                                 MediaUtils.MediaType.IMAGE -> {
@@ -565,6 +589,14 @@ fun IssuePhotosCard(photos: List<String>) {
             onDismiss = { showPhotoViewer = false }
         )
     }
+    
+    // Full Screen Video Dialog
+    if (showFullScreenVideo) {
+        FullScreenVideoDialog(
+            videoUrl = fullScreenVideoUrl,
+            onDismiss = { showFullScreenVideo = false }
+        )
+    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -573,6 +605,13 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
     // State for photo viewer
     var showPhotoViewer by remember { mutableStateOf(false) }
     var selectedPhotoIndex by remember { mutableIntStateOf(0) }
+    
+    // State for full screen video
+    var showFullScreenVideo by remember { mutableStateOf(false) }
+    var fullScreenVideoUrl by remember { mutableStateOf("") }
+    
+    // Combine photo and video URLs
+    val allUpdateMediaUrls = update.photoUrls + update.videoUrls
 
     Card(
         modifier = Modifier
@@ -623,17 +662,17 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                 )
             }
 
-            // Photos if any
-            if (update.photoUrls.isNotEmpty()) {
+            // Photos and videos if any
+            if (allUpdateMediaUrls.isNotEmpty()) {
                 Text(
-                    text = "${stringResource(R.string.update_photos)} (${update.photoUrls.size}):",
+                    text = "${stringResource(R.string.update_photos)} (${allUpdateMediaUrls.size}):",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(top = 8.dp)
                 )
 
-                // Display photos in a horizontal pager
-                val pagerState = rememberPagerState(pageCount = { update.photoUrls.size })
+                // Display photos and videos in a horizontal pager
+                val pagerState = rememberPagerState(pageCount = { allUpdateMediaUrls.size })
                 val context = LocalContext.current
 
                 Box(
@@ -656,8 +695,8 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            val originalUrl = update.photoUrls[page]
-                            val fixedUrl = RetrofitClient.fixImageUrl(originalUrl)
+                            val originalUrl = allUpdateMediaUrls[page]
+                            val fixedUrl = RetrofitClient.fixMediaUrl(originalUrl)
                             val mediaType = MediaUtils.getMediaType(fixedUrl)
                             
                             Log.d("UpdateCard", "Loading update media from URL: $fixedUrl, type: $mediaType")
@@ -671,7 +710,11 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                                             .fillMaxSize()
                                             .clip(RoundedCornerShape(12.dp)),
                                         autoPlay = false,
-                                        showControls = true
+                                        showControls = true,
+                                        onFullScreenClick = {
+                                            fullScreenVideoUrl = fixedUrl
+                                            showFullScreenVideo = true
+                                        }
                                     )
                                 }
                                 MediaUtils.MediaType.IMAGE, MediaUtils.MediaType.UNKNOWN -> {
@@ -771,8 +814,8 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                         }
                     }
 
-                    // Page Indicator for multiple photos
-                    if (update.photoUrls.size > 1) {
+                    // Page Indicator for multiple photos/videos
+                    if (allUpdateMediaUrls.size > 1) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -780,7 +823,7 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                                 .padding(bottom = 8.dp),
                             horizontalArrangement = Arrangement.Center
                         ) {
-                            update.photoUrls.indices.forEach { index ->
+                            allUpdateMediaUrls.indices.forEach { index ->
                                 Box(
                                     modifier = Modifier
                                         .padding(horizontal = 2.dp)
@@ -802,12 +845,20 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
         }
     }
 
-    // Photo Viewer Dialog
+    // Photo/Video Viewer Dialog
     if (showPhotoViewer) {
         PhotoViewerDialog(
-            photos = update.photoUrls,
+            photos = allUpdateMediaUrls,
             initialPage = selectedPhotoIndex,
             onDismiss = { showPhotoViewer = false }
+        )
+    }
+    
+    // Full Screen Video Dialog
+    if (showFullScreenVideo) {
+        FullScreenVideoDialog(
+            videoUrl = fullScreenVideoUrl,
+            onDismiss = { showFullScreenVideo = false }
         )
     }
 }

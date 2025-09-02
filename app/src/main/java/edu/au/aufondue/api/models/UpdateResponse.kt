@@ -9,5 +9,6 @@ data class UpdateResponse(
     val status: String,
     val comment: String?,
     val updateTime: LocalDateTime,
-    val photoUrls: List<String>
+    val photoUrls: List<String>,
+    val videoUrls: List<String> = emptyList()
 )
