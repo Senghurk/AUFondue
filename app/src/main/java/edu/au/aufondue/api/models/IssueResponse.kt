@@ -11,6 +11,7 @@ data class IssueResponse(
     val customLocation: String?,
     val status: String,
     val photoUrls: List<String>,
+    val videoUrls: List<String> = emptyList(),
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
     val reportedBy: UserResponse?,

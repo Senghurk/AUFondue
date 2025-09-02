@@ -3,6 +3,7 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -12,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -53,12 +55,28 @@ fun ProfileScreen(
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
             if (state.avatarUrl.isNotEmpty()) {
+                val imageRequest = remember(state.avatarUrl, context) {
+                    val profilePictureService = edu.au.aufondue.api.ProfilePictureService.getInstance()
+                    
+                    if (state.avatarUrl.startsWith("graph_api:")) {
+                        // Handle Microsoft Graph API URLs
+                        profilePictureService.createGraphImageRequest(context, state.avatarUrl)
+                            ?.newBuilder()
+                            ?.transformations(listOf(CircleCropTransformation()))
+                            ?.crossfade(true)
+                            ?.build()
+                    } else {
+                        // Handle regular URLs
+                        ImageRequest.Builder(context)
+                            .data(state.avatarUrl)
+                            .transformations(listOf(CircleCropTransformation()))
+                            .crossfade(true)
+                            .build()
+                    }
+                }
+                
                 SubcomposeAsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(state.avatarUrl)
-                        .transformations(listOf(CircleCropTransformation()))
-                        .crossfade(true)
-                        .build(),
+                    model = imageRequest,
                     contentDescription = "Profile Avatar",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop,
@@ -167,6 +185,54 @@ fun ProfileScreen(
                             )
                         )
                     }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // App Info Card
+        Card(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.app_info),
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                // Version Info
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(stringResource(R.string.version))
+                    Text(
+                        text = stringResource(R.string.app_version),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                // Developer Info
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(stringResource(R.string.developer))
+                    Text(
+                        text = stringResource(R.string.developer_name),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }

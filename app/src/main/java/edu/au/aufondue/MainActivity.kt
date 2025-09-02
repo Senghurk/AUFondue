@@ -39,7 +39,7 @@ import edu.au.aufondue.navigation.Screen
 import edu.au.aufondue.navigation.getBottomNavigationItems
 import edu.au.aufondue.screens.home.HomeScreen
 import edu.au.aufondue.screens.login.LoginScreen
-import edu.au.aufondue.screens.map.CampusMapScreen
+import edu.au.aufondue.screens.reports.ReportsListScreen
 import edu.au.aufondue.screens.notification.NotificationDetailsScreen
 import edu.au.aufondue.screens.notification.NotificationScreen
 import edu.au.aufondue.screens.profile.ProfileScreen
@@ -147,14 +147,16 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
 
-                                composable(Screen.Map.route) {
-                                    CampusMapScreen(
-                                        onNavigateBack = {
-                                            navController.navigateUp()
-                                        },
-                                        onBuildingClick = {
-                                            // Optional: Navigate to report screen with pre-filled location
-                                            // navController.navigate("${Screen.Report.route}?buildingId=$buildingId")
+                                composable(
+                                    route = "reports_list/{statusFilter}",
+                                    arguments = listOf(navArgument("statusFilter") { type = NavType.StringType })
+                                ) { backStackEntry ->
+                                    val statusFilter = backStackEntry.arguments?.getString("statusFilter") ?: "ALL"
+                                    ReportsListScreen(
+                                        statusFilter = statusFilter,
+                                        onNavigateBack = { navController.popBackStack() },
+                                        onNavigateToIssueDetails = { issueId ->
+                                            navController.navigate("notification_details/${issueId.toLongOrNull() ?: 0L}")
                                         }
                                     )
                                 }
@@ -316,6 +318,7 @@ class MainActivity : ComponentActivity() {
         return when {
             currentRoute == null -> true
             currentRoute.startsWith("notification_details") -> false
+            currentRoute.startsWith("issue_details") -> false
             else -> true
         }
     }

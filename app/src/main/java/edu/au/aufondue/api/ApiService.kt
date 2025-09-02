@@ -16,7 +16,7 @@ interface ApiService {
     @POST("api/issues")
     suspend fun createIssue(
         @Part("issue") issue: RequestBody,
-        @Part photos: List<MultipartBody.Part>
+        @Part media: List<MultipartBody.Part>
     ): Response<ApiResponse<IssueResponse>>
 
     @GET("api/issues/user/{userId}/submitted")

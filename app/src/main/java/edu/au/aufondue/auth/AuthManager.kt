@@ -53,9 +53,9 @@ class AuthManager private constructor(private val context: Context) {
             try {
                 Log.d(TAG, "Starting Microsoft OAuth through Firebase")
 
-                // Create Microsoft OAuth provider (same as web app)
+                // Create Microsoft OAuth provider with additional scopes for profile picture
                 val provider = OAuthProvider.newBuilder("microsoft.com")
-                    .setScopes(listOf("mail.read", "openid", "profile"))
+                    .setScopes(listOf("openid", "profile", "email", "offline_access", "User.Read"))
                     .build()
 
                 // Start Microsoft OAuth flow using provided activity
@@ -77,15 +77,30 @@ class AuthManager private constructor(private val context: Context) {
                     val idToken = user.getIdToken(false).await().token
                     if (idToken != null) {
                         Log.d(TAG, "Got Firebase ID token")
+                        
+                        // Try to get Microsoft access token from OAuth credential
+                        val microsoftAccessToken = try {
+                            result.credential?.let { credential ->
+                                if (credential is com.google.firebase.auth.OAuthCredential) {
+                                    credential.accessToken
+                                } else null
+                            }
+                        } catch (e: Exception) {
+                            Log.w(TAG, "Could not extract Microsoft access token", e)
+                            null
+                        }
 
                         // Create/verify user in backend
                         val userId = createOrVerifyUser(user.email!!, user.displayName ?: user.email!!.substringBefore("@"))
 
-                        // Save user info locally
+                        // Save user info locally with profile data
                         withContext(Dispatchers.Main) {
                             UserPreferences.getInstance(context).saveUserInfo(
-                                user.email!!,
-                                user.displayName ?: user.email!!.substringBefore("@")
+                                email = user.email!!,
+                                username = user.email!!.substringBefore("@"),
+                                displayName = user.displayName,
+                                profilePhotoUrl = user.photoUrl?.toString(),
+                                microsoftAccessToken = microsoftAccessToken
                             )
                             onSuccess(userId.toString())
                         }

@@ -33,6 +33,7 @@ data class ReportState(
     val category: String = "",
     val customCategory: String = "",
     val selectedPhotos: List<Uri> = emptyList(),
+    val selectedVideos: List<Uri> = emptyList(),
     val customLocation: String = "",
     val isLoading: Boolean = false,
     val error: String? = null,
@@ -100,6 +101,42 @@ class ReportViewModel : ViewModel() {
         }
     }
 
+    fun onVideoSelected(uri: Uri) {
+        val ctx = context ?: return
+        
+        // Check file size (100MB limit)
+        try {
+            ctx.contentResolver.openFileDescriptor(uri, "r")?.use { descriptor ->
+                val fileSize = descriptor.statSize
+                val maxSize = 100 * 1024 * 1024L // 100MB in bytes
+                
+                if (fileSize > maxSize) {
+                    _state.update { it.copy(error = "Video file size exceeds 100MB limit") }
+                    return
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("ReportViewModel", "Error checking video file size: ${e.message}")
+            _state.update { it.copy(error = "Error processing video file") }
+            return
+        }
+        
+        _state.update { currentState ->
+            // Limit to one video
+            currentState.copy(
+                selectedVideos = listOf(uri)
+            )
+        }
+    }
+
+    fun onVideoRemoved(uri: Uri) {
+        _state.update { currentState ->
+            currentState.copy(
+                selectedVideos = currentState.selectedVideos.filter { it != uri }
+            )
+        }
+    }
+
     private fun validateInput() {
         val currentState = state.value
         val errors = mutableListOf<String>()
@@ -117,8 +154,8 @@ class ReportViewModel : ViewModel() {
                 errors.add("Please select a category")
             currentState.category == "Custom" && currentState.customCategory.isBlank() ->
                 errors.add("Please enter a custom category")
-            currentState.selectedPhotos.isEmpty() ->
-                errors.add("Please attach at least one photo")
+            currentState.selectedPhotos.isEmpty() && currentState.selectedVideos.isEmpty() ->
+                errors.add("Please attach at least one photo or video")
             currentState.customLocation.isBlank() ->
                 errors.add("Please provide a location description")
         }
@@ -188,7 +225,9 @@ class ReportViewModel : ViewModel() {
 
                 val issueRequestBody = issueJson.toRequestBody("application/json".toMediaTypeOrNull())
 
-                val photoParts = mutableListOf<MultipartBody.Part>()
+                val mediaParts = mutableListOf<MultipartBody.Part>()
+                
+                // Process photos
                 currentState.selectedPhotos.forEach { uri ->
                     try {
                         createTempFileFromUri(uri)?.let { tempFile ->
@@ -198,23 +237,41 @@ class ReportViewModel : ViewModel() {
                                 "photo_${System.currentTimeMillis()}.jpg",
                                 photoBody
                             )
-                            photoParts.add(part)
+                            mediaParts.add(part)
                             Log.d("ReportViewModel", "Added photo part: ${tempFile.absolutePath}")
                         } ?: Log.e("ReportViewModel", "Failed to create temp file from URI: $uri")
                     } catch (e: Exception) {
                         Log.e("ReportViewModel", "Error processing photo: ${e.message}", e)
                     }
                 }
-
-                if (photoParts.isEmpty()) {
-                    throw IllegalStateException("Failed to process photos")
+                
+                // Process videos
+                currentState.selectedVideos.forEach { uri ->
+                    try {
+                        createTempFileFromUri(uri)?.let { tempFile ->
+                            val videoBody = tempFile.asRequestBody("video/*".toMediaTypeOrNull())
+                            val part = MultipartBody.Part.createFormData(
+                                "videos",
+                                "video_${System.currentTimeMillis()}.mp4",
+                                videoBody
+                            )
+                            mediaParts.add(part)
+                            Log.d("ReportViewModel", "Added video part: ${tempFile.absolutePath}")
+                        } ?: Log.e("ReportViewModel", "Failed to create temp file from URI: $uri")
+                    } catch (e: Exception) {
+                        Log.e("ReportViewModel", "Error processing video: ${e.message}", e)
+                    }
                 }
 
-                Log.d("ReportViewModel", "Submitting report with ${photoParts.size} photos")
+                if (mediaParts.isEmpty()) {
+                    throw IllegalStateException("Failed to process media files")
+                }
+
+                Log.d("ReportViewModel", "Submitting report with ${mediaParts.size} media files (${currentState.selectedPhotos.size} photos, ${currentState.selectedVideos.size} videos)")
                 Log.d("ReportViewModel", "User info - email=${issueRequest.userEmail}, name=${issueRequest.userName}")
 
                 try {
-                    val response = RetrofitClient.apiService.createIssue(issueRequestBody, photoParts)
+                    val response = RetrofitClient.apiService.createIssue(issueRequestBody, mediaParts)
                     Log.d("ReportViewModel", "Response code: ${response.code()}")
 
                     if (!response.isSuccessful) {

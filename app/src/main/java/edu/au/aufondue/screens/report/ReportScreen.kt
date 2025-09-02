@@ -32,6 +32,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -107,6 +108,15 @@ fun ReportScreen(
     ) { uris: List<Uri> ->
         uris.forEach { uri ->
             viewModel.onPhotoSelected(uri)
+        }
+    }
+
+    // Video selection from gallery
+    val videoGalleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { videoUri ->
+            viewModel.onVideoSelected(videoUri)
         }
     }
 
@@ -235,7 +245,7 @@ fun ReportScreen(
                 minLines = 3
             )
 
-            // 4. Attach Photo Button
+            // 4. Attach Media Button
             Button(
                 onClick = { showAttachmentDialog = true },
                 modifier = Modifier.fillMaxWidth(),
@@ -244,11 +254,11 @@ fun ReportScreen(
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             ) {
-                Text(stringResource(R.string.attach_photo))
+                Text(stringResource(R.string.attach_media))
             }
 
-            // Photo preview (if any photos selected)
-            if (state.selectedPhotos.isNotEmpty()) {
+            // Media preview (photos and videos)
+            if (state.selectedPhotos.isNotEmpty() || state.selectedVideos.isNotEmpty()) {
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(vertical = 8.dp)
@@ -257,6 +267,12 @@ fun ReportScreen(
                         PhotoPreviewItem(
                             uri = uri,
                             onRemove = { viewModel.onPhotoRemoved(uri) }
+                        )
+                    }
+                    items(state.selectedVideos) { uri ->
+                        VideoPreviewItem(
+                            uri = uri,
+                            onRemove = { viewModel.onVideoRemoved(uri) }
                         )
                     }
                 }
@@ -337,11 +353,11 @@ fun ReportScreen(
                 )
             }
 
-            // Attach Photo Dialog
+            // Attach Media Dialog
             if (showAttachmentDialog) {
                 AlertDialog(
                     onDismissRequest = { showAttachmentDialog = false },
-                    title = { Text(stringResource(R.string.add_photo)) },
+                    title = { Text(stringResource(R.string.add_media)) },
                     text = {
                         Column(
                             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -373,7 +389,16 @@ fun ReportScreen(
                                 },
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(stringResource(R.string.choose_from_gallery))
+                                Text(stringResource(R.string.choose_photos))
+                            }
+                            TextButton(
+                                onClick = {
+                                    videoGalleryLauncher.launch("video/*")
+                                    showAttachmentDialog = false
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(stringResource(R.string.choose_video))
                             }
                         }
                     },
@@ -425,6 +450,66 @@ private fun PhotoPreviewItem(
                 Icon(
                     Icons.Default.Close,
                     contentDescription = "Remove photo",
+                    tint = Color.White,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun VideoPreviewItem(
+    uri: Uri,
+    onRemove: () -> Unit
+) {
+    val context = LocalContext.current
+
+    Card(
+        modifier = Modifier.size(80.dp),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Video thumbnail preview
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(uri)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Selected video thumbnail",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+
+            // Video play icon overlay
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.PlayArrow,
+                    contentDescription = "Video",
+                    tint = Color.White,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+
+            // Remove button
+            IconButton(
+                onClick = onRemove,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(24.dp)
+                    .background(
+                        Color.Black.copy(alpha = 0.6f),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+            ) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Remove video",
                     tint = Color.White,
                     modifier = Modifier.size(16.dp)
                 )

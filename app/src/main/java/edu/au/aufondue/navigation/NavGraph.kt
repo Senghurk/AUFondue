@@ -1,7 +1,6 @@
 package edu.au.aufondue.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.Composable
@@ -19,6 +18,9 @@ sealed class Screen(val route: String) {
     object NotificationDetails : Screen("notification_details/{issueId}") {
         fun createRoute(issueId: Long): String = "notification_details/$issueId"
     }
+    object ReportsList : Screen("reports_list/{statusFilter}") {
+        fun createRoute(statusFilter: String): String = "reports_list/$statusFilter"
+    }
 }
 
 data class NavigationItem(
@@ -33,11 +35,6 @@ fun getBottomNavigationItems() = listOf(
         title = stringResource(R.string.nav_home),
         icon = Icons.Default.Home,
         route = Screen.Home.route
-    ),
-    NavigationItem(
-        title = stringResource(R.string.nav_map),
-        icon = Icons.Default.Map,
-        route = Screen.Map.route
     ),
     NavigationItem(
         title = stringResource(R.string.nav_notifications),

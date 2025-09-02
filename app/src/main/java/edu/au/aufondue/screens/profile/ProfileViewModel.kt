@@ -47,39 +47,70 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                     val firebaseUser = authMgr?.getCurrentUser()
 
                     if (firebaseUser != null) {
-                        // User is signed in with Firebase
+                        // User is signed in with Firebase - get profile data
                         val email = firebaseUser.email ?: ""
                         val displayName = firebaseUser.displayName ?: email.split("@").firstOrNull() ?: ""
+                        val profilePhotoUrl = firebaseUser.photoUrl?.toString()
 
                         // Also update UserPreferences to keep local data in sync
-                        UserPreferences.getInstance(getApplication()).saveUserInfo(email, displayName)
+                        UserPreferences.getInstance(getApplication()).saveUserInfo(
+                            email = email,
+                            username = email.substringBefore("@"),
+                            displayName = displayName,
+                            profilePhotoUrl = profilePhotoUrl
+                        )
 
                         // Get saved language preference
                         val savedLanguage = LanguageManager.getSelectedLanguage(getApplication())
+
+                        // Try to get high-quality profile picture
+                        val profilePictureService = edu.au.aufondue.api.ProfilePictureService.getInstance()
+                        val highQualityProfileUrl = try {
+                            profilePictureService.getProfilePictureUrl(getApplication())
+                        } catch (e: Exception) {
+                            Log.w("ProfileViewModel", "Error getting profile picture", e)
+                            null
+                        }
+
+                        val finalAvatarUrl = highQualityProfileUrl ?: profilePhotoUrl ?: generateRobotAvatarUrl()
 
                         withContext(Dispatchers.Main) {
                             _state.value = _state.value.copy(
                                 displayName = displayName,
                                 email = email,
                                 selectedLanguage = savedLanguage,
-                                isSignedInWithFirebase = true
+                                isSignedInWithFirebase = true,
+                                avatarUrl = finalAvatarUrl
                             )
                         }
                     } else {
-                        // Fall back to UserPreferences (shouldn't happen in normal flow)
+                        // Fall back to UserPreferences
                         val prefs = UserPreferences.getInstance(getApplication())
                         val email = prefs.getUserEmail() ?: ""
-                        val displayName = prefs.getUsername() ?: ""
+                        val displayName = prefs.getDisplayName() ?: prefs.getUsername() ?: ""
+                        val profilePhotoUrl = prefs.getProfilePhotoUrl()
 
                         // Get saved language preference
                         val savedLanguage = LanguageManager.getSelectedLanguage(getApplication())
+
+                        // Try to get high-quality profile picture
+                        val profilePictureService = edu.au.aufondue.api.ProfilePictureService.getInstance()
+                        val highQualityProfileUrl = try {
+                            profilePictureService.getProfilePictureUrl(getApplication())
+                        } catch (e: Exception) {
+                            Log.w("ProfileViewModel", "Error getting profile picture", e)
+                            null
+                        }
+
+                        val finalAvatarUrl = highQualityProfileUrl ?: profilePhotoUrl ?: generateRobotAvatarUrl()
 
                         withContext(Dispatchers.Main) {
                             _state.value = _state.value.copy(
                                 displayName = displayName,
                                 email = email,
                                 selectedLanguage = savedLanguage,
-                                isSignedInWithFirebase = false
+                                isSignedInWithFirebase = false,
+                                avatarUrl = finalAvatarUrl
                             )
                         }
                     }
@@ -99,11 +130,31 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun updateAvatar() {
-        val newAvatarUrl = generateRobotAvatarUrl()
-        Log.d("ProfileViewModel", "Updating avatar with URL: $newAvatarUrl")
-        _state.value = _state.value.copy(
-            avatarUrl = newAvatarUrl
-        )
+        viewModelScope.launch {
+            try {
+                Log.d("ProfileViewModel", "Updating avatar...")
+                
+                // Try to get the latest profile picture from Microsoft Graph
+                val profilePictureService = edu.au.aufondue.api.ProfilePictureService.getInstance()
+                val profileUrl = profilePictureService.getProfilePictureUrl(getApplication())
+                
+                val newAvatarUrl = if (!profileUrl.isNullOrBlank()) {
+                    Log.d("ProfileViewModel", "Using profile picture from Microsoft Graph")
+                    profileUrl
+                } else {
+                    Log.d("ProfileViewModel", "Generating new robot avatar")
+                    generateRobotAvatarUrl()
+                }
+                
+                _state.value = _state.value.copy(avatarUrl = newAvatarUrl)
+                
+            } catch (e: Exception) {
+                Log.e("ProfileViewModel", "Error updating avatar", e)
+                // Fall back to generating a new robot avatar
+                val newAvatarUrl = generateRobotAvatarUrl()
+                _state.value = _state.value.copy(avatarUrl = newAvatarUrl)
+            }
+        }
     }
 
     fun toggleNotifications() {

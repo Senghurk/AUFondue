@@ -1,5 +1,6 @@
 package edu.au.aufondue.screens.home
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -38,6 +39,7 @@ import coil3.request.transformations
 import coil3.transform.CircleCropTransformation
 import edu.au.aufondue.R
 import edu.au.aufondue.auth.UserPreferences
+import edu.au.aufondue.navigation.Screen
 import java.util.*
 import androidx.compose.foundation.clickable
 
@@ -46,7 +48,8 @@ data class QuickStatCard(
     val title: String,
     val count: Int,
     val icon: ImageVector,
-    val color: Color
+    val color: Color,
+    val onClick: () -> Unit
 )
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -63,8 +66,12 @@ fun HomeScreen(
 
     // Get user preferences
     val userPreferences = UserPreferences.getInstance(context)
-    val username = userPreferences.getUsername() ?: stringResource(R.string.nav_profile)
+    val displayName = userPreferences.getDisplayName()
+    val username = displayName ?: userPreferences.getUsername() ?: stringResource(R.string.nav_profile)
     val userEmail = userPreferences.getUserEmail() ?: ""
+    
+    // Use first name from display name for greeting, fallback to username
+    val greetingName = displayName?.split(" ")?.firstOrNull() ?: username
 
     // Time-based greeting that considers user's timezone and internet time
     val greeting = remember {
@@ -94,11 +101,30 @@ fun HomeScreen(
         }
     }
 
-    // Generate avatar URL (using the same method as ProfileViewModel)
-    val avatarUrl = remember {
-        val randomSeed = kotlin.random.Random.nextInt(1000)
-        val timestamp = System.currentTimeMillis()
-        "https://robohash.org/$randomSeed?set=set4&size=200x200&ts=$timestamp"
+    // Get avatar URL - use Microsoft profile photo if available, otherwise generate robot avatar
+    var avatarUrl by remember { mutableStateOf<String?>(null) }
+    
+    // Load profile picture using ProfilePictureService
+    LaunchedEffect(Unit) {
+        try {
+            val profilePictureService = edu.au.aufondue.api.ProfilePictureService.getInstance()
+            val profileUrl = profilePictureService.getProfilePictureUrl(context)
+            
+            avatarUrl = if (!profileUrl.isNullOrBlank()) {
+                profileUrl
+            } else {
+                // Generate robot avatar as fallback
+                val randomSeed = kotlin.random.Random.nextInt(1000)
+                val timestamp = System.currentTimeMillis()
+                "https://robohash.org/$randomSeed?set=set4&size=200x200&ts=$timestamp"
+            }
+        } catch (e: Exception) {
+            Log.e("HomeScreen", "Error loading profile picture", e)
+            // Generate robot avatar as fallback
+            val randomSeed = kotlin.random.Random.nextInt(1000)
+            val timestamp = System.currentTimeMillis()
+            avatarUrl = "https://robohash.org/$randomSeed?set=set4&size=200x200&ts=$timestamp"
+        }
     }
 
     // Get theme colors outside remember
@@ -123,25 +149,37 @@ fun HomeScreen(
                 title = totalReportsLabel,
                 count = totalReports,
                 icon = Icons.Default.Assignment,
-                color = primaryColor
+                color = primaryColor,
+                onClick = { 
+                    navController.navigate(Screen.ReportsList.createRoute("ALL"))
+                }
             ),
             QuickStatCard(
                 title = pendingLabel,
                 count = pendingReports,
                 icon = Icons.Default.Pending,
-                color = Color(0xFFFFA000)
+                color = Color(0xFFFFA000),
+                onClick = { 
+                    navController.navigate(Screen.ReportsList.createRoute("PENDING"))
+                }
             ),
             QuickStatCard(
                 title = inProgressLabel,
                 count = inProgressReports,
                 icon = Icons.Default.HourglassEmpty,
-                color = Color(0xFF2196F3)
+                color = Color(0xFF2196F3),
+                onClick = { 
+                    navController.navigate(Screen.ReportsList.createRoute("IN PROGRESS"))
+                }
             ),
             QuickStatCard(
                 title = completedLabel,
                 count = completedReports,
                 icon = Icons.Default.CheckCircle,
-                color = Color(0xFF4CAF50)
+                color = Color(0xFF4CAF50),
+                onClick = { 
+                    navController.navigate(Screen.ReportsList.createRoute("COMPLETED"))
+                }
             )
         )
     }
@@ -204,8 +242,8 @@ fun HomeScreen(
                 item {
                     WelcomeSection(
                         greeting = greeting,
-                        username = username,
-                        avatarUrl = avatarUrl,
+                        username = greetingName,
+                        avatarUrl = avatarUrl ?: "",
                         pendingReportsCount = quickStats[1].count // Pending reports count
                     )
                 }
@@ -214,6 +252,7 @@ fun HomeScreen(
                 item {
                     QuickStatsSection(stats = quickStats)
                 }
+
 
                 // Reports Section Header
                 item {
@@ -316,12 +355,29 @@ private fun WelcomeSection(
             }
 
             // User Avatar
+            val context = LocalContext.current
+            val imageRequest = remember(avatarUrl, context) {
+                val profilePictureService = edu.au.aufondue.api.ProfilePictureService.getInstance()
+                
+                if (avatarUrl.startsWith("graph_api:")) {
+                    // Handle Microsoft Graph API URLs
+                    profilePictureService.createGraphImageRequest(context, avatarUrl)
+                        ?.newBuilder()
+                        ?.transformations(listOf(CircleCropTransformation()))
+                        ?.crossfade(true)
+                        ?.build()
+                } else {
+                    // Handle regular URLs
+                    ImageRequest.Builder(context)
+                        .data(avatarUrl)
+                        .transformations(listOf(CircleCropTransformation()))
+                        .crossfade(true)
+                        .build()
+                }
+            }
+            
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(avatarUrl)
-                    .transformations(listOf(CircleCropTransformation()))
-                    .crossfade(true)
-                    .build(),
+                model = imageRequest,
                 contentDescription = "Profile Avatar",
                 modifier = Modifier
                     .size(60.dp)
@@ -359,7 +415,8 @@ private fun QuickStatCard(stat: QuickStatCard) {
     Card(
         modifier = Modifier
             .width(140.dp)
-            .height(100.dp),
+            .height(100.dp)
+            .clickable { stat.onClick() },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = stat.color.copy(alpha = 0.1f)
@@ -406,7 +463,7 @@ private fun QuickStatCard(stat: QuickStatCard) {
 }
 
 @Composable
-private fun ReportCard(
+fun ReportCard(
     report: ReportItem,
     onReportClick: (String) -> Unit  // Note: String, not Long as per existing ReportItem.id
 ) {

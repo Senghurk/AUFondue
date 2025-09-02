@@ -63,6 +63,8 @@ import edu.au.aufondue.R
 import edu.au.aufondue.api.RetrofitClient
 import edu.au.aufondue.api.models.UpdateResponse
 import edu.au.aufondue.components.PhotoViewerDialog
+import edu.au.aufondue.components.VideoPlayer
+import edu.au.aufondue.utils.MediaUtils
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -340,40 +342,56 @@ fun IssuePhotosCard(photos: List<String>) {
                         ) {
                             val originalUrl = photos[page]
                             val fixedUrl = RetrofitClient.fixImageUrl(originalUrl)
-                            Log.d("IssuePhotosCard", "Loading image from URL: $fixedUrl")
+                            val mediaType = MediaUtils.getMediaType(fixedUrl)
+                            
+                            Log.d("IssuePhotosCard", "Loading media from URL: $fixedUrl, type: $mediaType")
 
-                            // Use remember with the URL as key to reset states when URL changes
-                            var isLoading by remember(fixedUrl) { mutableStateOf(true) }
-                            var isError by remember(fixedUrl) { mutableStateOf(false) }
+                            when (mediaType) {
+                                MediaUtils.MediaType.VIDEO -> {
+                                    // Display video player
+                                    VideoPlayer(
+                                        videoUrl = fixedUrl,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clip(RoundedCornerShape(12.dp)),
+                                        autoPlay = false,
+                                        showControls = true
+                                    )
+                                }
+                                MediaUtils.MediaType.IMAGE -> {
+                                    // Display image (existing code)
+                                    // Use remember with the URL as key to reset states when URL changes
+                                    var isLoading by remember(fixedUrl) { mutableStateOf(true) }
+                                    var isError by remember(fixedUrl) { mutableStateOf(false) }
 
-                            Box(modifier = Modifier.fillMaxSize()) {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(context)
-                                        .data(fixedUrl)
-                                        .diskCachePolicy(CachePolicy.ENABLED)
-                                        .memoryCachePolicy(CachePolicy.ENABLED)
-                                        .crossfade(true)
-                                        .build(),
-                                    contentDescription = "${stringResource(R.string.report_photo)} ${page + 1}",
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .clip(RoundedCornerShape(12.dp)),
-                                    contentScale = ContentScale.Fit,
-                                    onLoading = {
-                                        isLoading = true
-                                        isError = false
-                                    },
-                                    onSuccess = {
-                                        isLoading = false
-                                        isError = false
-                                        Log.d("IssuePhotosCard", "Image loaded successfully: $fixedUrl")
-                                    },
-                                    onError = {
-                                        isLoading = false
-                                        isError = true
-                                        Log.e("IssuePhotosCard", "Failed to load image: $fixedUrl", it.result.throwable)
-                                    }
-                                )
+                                    Box(modifier = Modifier.fillMaxSize()) {
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(context)
+                                                .data(fixedUrl)
+                                                .diskCachePolicy(CachePolicy.ENABLED)
+                                                .memoryCachePolicy(CachePolicy.ENABLED)
+                                                .crossfade(true)
+                                                .build(),
+                                            contentDescription = "${stringResource(R.string.report_photo)} ${page + 1}",
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .clip(RoundedCornerShape(12.dp)),
+                                            contentScale = ContentScale.Fit,
+                                            onLoading = {
+                                                isLoading = true
+                                                isError = false
+                                            },
+                                            onSuccess = {
+                                                isLoading = false
+                                                isError = false
+                                                Log.d("IssuePhotosCard", "Image loaded successfully: $fixedUrl")
+                                            },
+                                            onError = {
+                                                isLoading = false
+                                                isError = true
+                                                Log.e("IssuePhotosCard", "Failed to load image: $fixedUrl", it.result.throwable)
+                                            }
+                                        )
 
                                 // Show loading indicator only while loading
                                 if (isLoading) {
@@ -410,6 +428,81 @@ fun IssuePhotosCard(photos: List<String>) {
                                             style = MaterialTheme.typography.bodyLarge,
                                             color = Color.Gray
                                         )
+                                    }
+                                }
+                                    }
+                                }
+                                MediaUtils.MediaType.UNKNOWN -> {
+                                    // Default to image behavior for unknown types
+                                    var isLoading by remember(fixedUrl) { mutableStateOf(true) }
+                                    var isError by remember(fixedUrl) { mutableStateOf(false) }
+
+                                    Box(modifier = Modifier.fillMaxSize()) {
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(context)
+                                                .data(fixedUrl)
+                                                .diskCachePolicy(CachePolicy.ENABLED)
+                                                .memoryCachePolicy(CachePolicy.ENABLED)
+                                                .crossfade(true)
+                                                .build(),
+                                            contentDescription = "${stringResource(R.string.report_photo)} ${page + 1}",
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .clip(RoundedCornerShape(12.dp)),
+                                            contentScale = ContentScale.Fit,
+                                            onLoading = {
+                                                isLoading = true
+                                                isError = false
+                                            },
+                                            onSuccess = {
+                                                isLoading = false
+                                                isError = false
+                                                Log.d("IssuePhotosCard", "Image loaded successfully: $fixedUrl")
+                                            },
+                                            onError = {
+                                                isLoading = false
+                                                isError = true
+                                                Log.e("IssuePhotosCard", "Failed to load image: $fixedUrl", it.result.throwable)
+                                            }
+                                        )
+
+                                        // Show loading indicator only while loading
+                                        if (isLoading) {
+                                            Box(
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.size(48.dp),
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                        }
+
+                                        // Show error state if image failed to load
+                                        if (isError) {
+                                            Column(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .background(Color.LightGray)
+                                                    .padding(16.dp),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.Error,
+                                                    contentDescription = "Error",
+                                                    modifier = Modifier.size(48.dp),
+                                                    tint = Color.Gray
+                                                )
+                                                Spacer(modifier = Modifier.height(8.dp))
+                                                Text(
+                                                    stringResource(R.string.error_loading_image),
+                                                    style = MaterialTheme.typography.bodyLarge,
+                                                    color = Color.Gray
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -565,25 +658,41 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                         ) {
                             val originalUrl = update.photoUrls[page]
                             val fixedUrl = RetrofitClient.fixImageUrl(originalUrl)
-                            Log.d("UpdateCard", "Loading update image from URL: $fixedUrl")
+                            val mediaType = MediaUtils.getMediaType(fixedUrl)
+                            
+                            Log.d("UpdateCard", "Loading update media from URL: $fixedUrl, type: $mediaType")
 
-                            // Use remember with the URL as key to reset states when URL changes
-                            var isLoading by remember(fixedUrl) { mutableStateOf(true) }
-                            var isError by remember(fixedUrl) { mutableStateOf(false) }
+                            when (mediaType) {
+                                MediaUtils.MediaType.VIDEO -> {
+                                    // Display video player
+                                    VideoPlayer(
+                                        videoUrl = fixedUrl,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clip(RoundedCornerShape(12.dp)),
+                                        autoPlay = false,
+                                        showControls = true
+                                    )
+                                }
+                                MediaUtils.MediaType.IMAGE, MediaUtils.MediaType.UNKNOWN -> {
+                                    // Display image (existing code + unknown types)
+                                    // Use remember with the URL as key to reset states when URL changes
+                                    var isLoading by remember(fixedUrl) { mutableStateOf(true) }
+                                    var isError by remember(fixedUrl) { mutableStateOf(false) }
 
-                            Box(modifier = Modifier.fillMaxSize()) {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(context)
-                                        .data(fixedUrl)
-                                        .diskCachePolicy(CachePolicy.ENABLED)
-                                        .memoryCachePolicy(CachePolicy.ENABLED)
-                                        .crossfade(true)
-                                        .build(),
-                                    contentDescription = "${stringResource(R.string.update_photo)} ${page + 1}",
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .clip(RoundedCornerShape(12.dp)),
-                                    contentScale = ContentScale.Fit,
+                                    Box(modifier = Modifier.fillMaxSize()) {
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(context)
+                                                .data(fixedUrl)
+                                                .diskCachePolicy(CachePolicy.ENABLED)
+                                                .memoryCachePolicy(CachePolicy.ENABLED)
+                                                .crossfade(true)
+                                                .build(),
+                                            contentDescription = "${stringResource(R.string.update_photo)} ${page + 1}",
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .clip(RoundedCornerShape(12.dp)),
+                                            contentScale = ContentScale.Fit,
                                     onLoading = {
                                         isLoading = true
                                         isError = false
@@ -636,6 +745,8 @@ fun UpdateCard(update: UpdateResponse, viewModel: NotificationDetailsViewModel) 
                                             color = Color.Gray,
                                             textAlign = TextAlign.Center
                                         )
+                                    }
+                                }
                                     }
                                 }
                             }

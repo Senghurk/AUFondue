@@ -55,7 +55,7 @@
     <string name="pending">รอดำเนินการ</string>
     <string name="in_progress">กำลังดำเนินการ</string>
     <string name="completed">เสร็จสิ้น</string>
-    <string name="your_submitted_reports">รายงานที่คุณส่ง</string>
+    <string name="your_submitted_reports">รายงานล่าสุดที่คุณส่ง</string>
     <string name="no_reports_yet">คุณยังไม่ได้ส่งรายงานใดๆ</string>
     <string name="submit_a_report">ส่งรายงานปัญหา</string>
 
@@ -102,7 +102,7 @@
     <string name="reported_by">รายงานโดย</string>
     <string name="reported_on">รายงานเมื่อ</string>
     <string name="status">สถานะ</string>
-    <string name="report_photos">รูปภาพรายงาน</string>
+    <string name="report_photos">รูปภาพ/วิดีโอรายงาน</string>
     <string name="update_from_om">อัปเดตจาก OM</string>
     <string name="update_photos">อัปเดตรูปภาพ</string>
     <string name="report_photo">รูปภาพรายงาน</string>

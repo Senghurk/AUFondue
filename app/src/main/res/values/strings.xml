@@ -49,14 +49,14 @@
     <string name="good_afternoon">Good Afternoon</string>
     <string name="good_evening">Good Evening</string>
     <string name="good_night">Good Night</string>
-    <string name="pending_reports">You have %1$d pending report%s</string>
-    <string name="no_pending_reports">All reports are up to date!</string>
+    <string name="old_pending_reports">You have %1$d pending report%s</string>
+    <string name="old_no_pending_reports">All reports are up to date!</string>
     <string name="quick_overview">Quick Overview</string>
     <string name="total_reports">Total Reports</string>
     <string name="pending">Pending</string>
     <string name="in_progress">In Progress</string>
     <string name="completed">Completed</string>
-    <string name="your_submitted_reports">Your Submitted Reports</string>
+    <string name="your_submitted_reports">Recent Submitted Reports</string>
     <string name="no_reports_yet">You haven\'t submitted any reports yet</string>
     <string name="submit_a_report">Submit a Report</string>
 
@@ -73,14 +73,40 @@
     <string name="enter_location_description">Enter location description</string>
     <string name="take_photo">Take Photo</string>
     <string name="choose_from_gallery">Choose from Gallery</string>
+    <string name="choose_photos">Choose Photos</string>
+    <string name="choose_video">Choose Video</string>
     <string name="enter_custom_category">Enter custom category</string>
     <string name="attach_photo">Attach Photo</string>
+    <string name="attach_media">Attach Media</string>
     <string name="photos_attached">%1$d photos attached</string>
     <string name="select_location">Select Location</string>
     <string name="provide_location">Provide Location</string>
     <string name="use_custom_location">Use Custom Location</string>
     <string name="selected_location">Selected Location</string>
     <string name="add_photo">Add Photo</string>
+    <string name="add_media">Add Media</string>
+    
+    <!-- Reports List -->
+    <string name="all_reports">All Reports</string>
+    <string name="pending_reports">Pending Reports</string>
+    <string name="in_progress_reports">In Progress Reports</string>
+    <string name="completed_reports">Completed Reports</string>
+    <string name="no_pending_reports">No pending reports found</string>
+    <string name="no_in_progress_reports">No in progress reports found</string>
+    <string name="no_completed_reports">No completed reports found</string>
+
+    <!-- App Info -->
+    <string name="app_info">App Information</string>
+    <string name="version">Version</string>
+    <string name="app_version">1.0.0</string>
+    <string name="developer">Developer</string>
+    <string name="developer_name">Sai Oan Hseng Hurk</string>
+
+    <!-- Status strings -->
+    <string name="status_pending">Pending</string>
+    <string name="status_in_progress">In Progress</string>
+    <string name="status_completed">Completed</string>
+    <string name="status_resolved">Resolved</string>
 
     <!-- Categories -->
     <string name="category_cracked">Cracked</string>
@@ -89,21 +115,13 @@
     <string name="category_broken">Broken</string>
     <string name="category_custom">Custom</string>
 
-    <!-- Reports List Screen -->
-    <string name="all_reports">All Reports</string>
-    <string name="no_reports_found">No reports found</string>
-    <string name="pull_to_refresh">Pull to refresh</string>
-    <string name="status_pending">Pending</string>
-    <string name="status_in_progress">In Progress</string>
-    <string name="status_resolved">Resolved</string>
-    <string name="status_completed">Completed</string>
 
     <!-- Report Detail Screen -->
     <string name="report_details">Report Details</string>
     <string name="reported_by">Reported by</string>
     <string name="reported_on">Reported on</string>
     <string name="status">Status</string>
-    <string name="report_photos">Report Photos</string>
+    <string name="report_photos">Report photos/videos</string>
     <string name="update_from_om">Update from OM</string>
     <string name="update_photos">Update Photos</string>
     <string name="report_photo">Report Photo</string>
