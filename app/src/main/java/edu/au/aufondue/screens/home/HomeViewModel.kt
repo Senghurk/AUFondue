@@ -1,4 +1,4 @@
-package edu.au.aufondue.screens.home
+package edu.au.unimend.aufondue.screens.home
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -7,10 +7,10 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import edu.au.aufondue.api.RetrofitClient
-import edu.au.aufondue.api.models.IssueResponse
-import edu.au.aufondue.auth.UserPreferences
-import edu.au.aufondue.utils.TimeUtils
+import edu.au.unimend.aufondue.api.RetrofitClient
+import edu.au.unimend.aufondue.api.models.IssueResponse
+import edu.au.unimend.aufondue.auth.UserPreferences
+import edu.au.unimend.aufondue.utils.TimeUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

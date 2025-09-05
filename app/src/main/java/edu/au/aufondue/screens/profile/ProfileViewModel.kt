@@ -1,12 +1,12 @@
-package edu.au.aufondue.screens.profile
+package edu.au.unimend.aufondue.screens.profile
 import android.app.Application
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import edu.au.aufondue.auth.AuthManager
-import edu.au.aufondue.auth.UserPreferences
-import edu.au.aufondue.utils.LanguageManager
+import edu.au.unimend.aufondue.auth.AuthManager
+import edu.au.unimend.aufondue.auth.UserPreferences
+import edu.au.unimend.aufondue.utils.LanguageManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -64,7 +64,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                         val savedLanguage = LanguageManager.getSelectedLanguage(getApplication())
 
                         // Try to get high-quality profile picture
-                        val profilePictureService = edu.au.aufondue.api.ProfilePictureService.getInstance()
+                        val profilePictureService = edu.au.unimend.aufondue.api.ProfilePictureService.getInstance()
                         val highQualityProfileUrl = try {
                             profilePictureService.getProfilePictureUrl(getApplication())
                         } catch (e: Exception) {
@@ -94,7 +94,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                         val savedLanguage = LanguageManager.getSelectedLanguage(getApplication())
 
                         // Try to get high-quality profile picture
-                        val profilePictureService = edu.au.aufondue.api.ProfilePictureService.getInstance()
+                        val profilePictureService = edu.au.unimend.aufondue.api.ProfilePictureService.getInstance()
                         val highQualityProfileUrl = try {
                             profilePictureService.getProfilePictureUrl(getApplication())
                         } catch (e: Exception) {
@@ -135,7 +135,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                 Log.d("ProfileViewModel", "Updating avatar...")
                 
                 // Try to get the latest profile picture from Microsoft Graph
-                val profilePictureService = edu.au.aufondue.api.ProfilePictureService.getInstance()
+                val profilePictureService = edu.au.unimend.aufondue.api.ProfilePictureService.getInstance()
                 val profileUrl = profilePictureService.getProfilePictureUrl(getApplication())
                 
                 val newAvatarUrl = if (!profileUrl.isNullOrBlank()) {

@@ -1,4 +1,4 @@
-package edu.au.aufondue.service
+package edu.au.unimend.aufondue.service
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -10,12 +10,12 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import edu.au.aufondue.MainActivity
-import edu.au.aufondue.R
+import edu.au.unimend.aufondue.MainActivity
+import edu.au.unimend.aufondue.api.RetrofitClient
+import edu.au.unimend.aufondue.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import edu.au.aufondue.api.RetrofitClient
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 

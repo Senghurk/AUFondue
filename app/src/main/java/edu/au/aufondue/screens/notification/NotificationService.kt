@@ -1,11 +1,11 @@
-package edu.au.aufondue.api
+package edu.au.unimend.aufondue.api
 
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import edu.au.aufondue.api.models.UpdateResponse
-import edu.au.aufondue.screens.notification.Notification
-import edu.au.aufondue.screens.notification.NotificationType
+import edu.au.unimend.aufondue.api.models.UpdateResponse
+import edu.au.unimend.aufondue.screens.notification.Notification
+import edu.au.unimend.aufondue.screens.notification.NotificationType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.ZoneId

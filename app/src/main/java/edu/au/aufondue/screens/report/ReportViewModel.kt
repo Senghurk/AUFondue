@@ -1,4 +1,4 @@
-package edu.au.aufondue.screens.report
+package edu.au.unimend.aufondue.screens.report
 
 import android.content.Context
 import android.net.Uri
@@ -7,9 +7,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import edu.au.aufondue.api.RetrofitClient
-import edu.au.aufondue.api.models.IssueRequest
-import edu.au.aufondue.auth.UserPreferences
+import edu.au.unimend.aufondue.api.RetrofitClient
+import edu.au.unimend.aufondue.api.models.IssueRequest
+import edu.au.unimend.aufondue.auth.UserPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

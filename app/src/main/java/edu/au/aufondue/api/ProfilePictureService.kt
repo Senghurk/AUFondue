@@ -1,8 +1,8 @@
-package edu.au.aufondue.api
+package edu.au.unimend.aufondue.api
 
 import android.content.Context
 import android.util.Log
-import edu.au.aufondue.auth.UserPreferences
+import edu.au.unimend.aufondue.auth.UserPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient

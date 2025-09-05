@@ -1,4 +1,4 @@
-package edu.au.aufondue.ui.theme
+package edu.au.unimend.aufondue.ui.theme
 import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

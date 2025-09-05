@@ -1,4 +1,4 @@
-package edu.au.aufondue.auth
+package edu.au.unimend.aufondue.auth
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -7,7 +7,8 @@ import androidx.activity.ComponentActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.OAuthProvider
-import edu.au.aufondue.api.RetrofitClient
+import edu.au.unimend.aufondue.auth.UserPreferences
+import edu.au.unimend.aufondue.api.RetrofitClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

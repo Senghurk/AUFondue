@@ -1,4 +1,4 @@
-package edu.au.aufondue.navigation
+package edu.au.unimend.aufondue.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
@@ -6,7 +6,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import edu.au.aufondue.R
+import edu.au.unimend.aufondue.R
 
 sealed class Screen(val route: String) {
     object Login : Screen("login")

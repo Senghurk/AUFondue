@@ -67,10 +67,10 @@
     <string name="photos">Photos</string>
     <string name="location">Location</string>
     <string name="submit">Submit</string>
-    <string name="enter_description">Enter a description of the issue</string>
+    <string name="enter_description">Eg. Air conditioner is not working, making loud noise</string>
     <string name="select_category">Select a category</string>
     <string name="enter_location">Enter the location</string>
-    <string name="enter_location_description">Enter location description</string>
+    <string name="enter_location_description">Eg. VMES-1012</string>
     <string name="take_photo">Take Photo</string>
     <string name="choose_from_gallery">Choose from Gallery</string>
     <string name="choose_photos">Choose Photos</string>

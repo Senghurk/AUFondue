@@ -80,8 +80,8 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:host="edu.au.aufondue"
-                    android:path="/2KKMkMA2KLZxAatK0cnro3sW9dU="
+                    android:host="edu.au.unimend.aufondue"
+                    android:path="/Mjn7dAC3B4aYG3i07SLFRpknzfg="
                     android:scheme="msauth" />
             </intent-filter>
         </activity>

@@ -1,4 +1,4 @@
-package edu.au.aufondue.utils
+package edu.au.unimend.aufondue.utils
 
 import android.content.Context
 import android.content.res.Configuration

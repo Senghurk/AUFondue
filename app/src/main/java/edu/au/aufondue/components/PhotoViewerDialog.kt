@@ -1,5 +1,5 @@
 
-package edu.au.aufondue.components
+package edu.au.unimend.aufondue.components
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.rememberTransformableState
@@ -48,8 +48,8 @@ import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import edu.au.aufondue.R
-import edu.au.aufondue.api.RetrofitClient
+import edu.au.unimend.aufondue.api.RetrofitClient
+import edu.au.unimend.aufondue.R
 
 @Composable
 fun PhotoViewerDialog(

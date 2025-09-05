@@ -1,9 +1,6 @@
-package edu.au.aufondue.api
+package edu.au.unimend.aufondue.api
 
 import android.util.Log
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.OAuthCredential
-import kotlinx.coroutines.tasks.await
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.logging.HttpLoggingInterceptor
@@ -39,7 +36,7 @@ class MicrosoftGraphService {
      */
     private fun getMicrosoftAccessToken(context: android.content.Context): String? {
         return try {
-            val userPrefs = edu.au.aufondue.auth.UserPreferences.getInstance(context)
+            val userPrefs = edu.au.unimend.aufondue.auth.UserPreferences.getInstance(context)
             val accessToken = userPrefs.getMicrosoftAccessToken()
             
             if (accessToken != null) {

@@ -1,5 +1,9 @@
-package edu.au.aufondue.api
-import edu.au.aufondue.api.models.*
+package edu.au.unimend.aufondue.api
+import edu.au.unimend.aufondue.api.models.*
+import edu.au.unimend.aufondue.api.models.ApiResponse
+import edu.au.unimend.aufondue.api.models.IssueResponse
+import edu.au.unimend.aufondue.api.models.UpdateResponse
+import edu.au.unimend.aufondue.api.models.UserResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response

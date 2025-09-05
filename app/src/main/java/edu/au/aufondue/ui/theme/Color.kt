@@ -1,4 +1,4 @@
-package edu.au.aufondue.ui.theme
+package edu.au.unimend.aufondue.ui.theme
 import androidx.compose.ui.graphics.Color
 
 val Purple80 = Color(0xFFD0BCFF)

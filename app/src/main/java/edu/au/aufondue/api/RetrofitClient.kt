@@ -1,4 +1,4 @@
-package edu.au.aufondue.api
+package edu.au.unimend.aufondue.api
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi

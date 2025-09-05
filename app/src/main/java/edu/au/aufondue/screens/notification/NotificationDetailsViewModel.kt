@@ -1,13 +1,13 @@
-package edu.au.aufondue.screens.notification
+package edu.au.unimend.aufondue.screens.notification
 
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import edu.au.aufondue.api.RetrofitClient
-import edu.au.aufondue.api.models.IssueResponse
-import edu.au.aufondue.api.models.UpdateResponse
+import edu.au.unimend.aufondue.api.RetrofitClient
+import edu.au.unimend.aufondue.api.models.IssueResponse
+import edu.au.unimend.aufondue.api.models.UpdateResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

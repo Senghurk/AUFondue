@@ -1,4 +1,4 @@
-package edu.au.aufondue.screens.notification
+package edu.au.unimend.aufondue.screens.notification
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -59,13 +59,13 @@ import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import edu.au.aufondue.R
-import edu.au.aufondue.api.RetrofitClient
-import edu.au.aufondue.api.models.UpdateResponse
-import edu.au.aufondue.components.FullScreenVideoDialog
-import edu.au.aufondue.components.PhotoViewerDialog
-import edu.au.aufondue.components.VideoPlayer
-import edu.au.aufondue.utils.MediaUtils
+import edu.au.unimend.aufondue.api.RetrofitClient
+import edu.au.unimend.aufondue.api.models.UpdateResponse
+import edu.au.unimend.aufondue.components.FullScreenVideoDialog
+import edu.au.unimend.aufondue.components.PhotoViewerDialog
+import edu.au.unimend.aufondue.components.VideoPlayer
+import edu.au.unimend.aufondue.utils.MediaUtils
+import edu.au.unimend.aufondue.R
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)

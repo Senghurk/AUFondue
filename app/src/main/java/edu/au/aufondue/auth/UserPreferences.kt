@@ -1,4 +1,4 @@
-package edu.au.aufondue.auth
+package edu.au.unimend.aufondue.auth
 import android.content.Context
 import android.content.SharedPreferences
 

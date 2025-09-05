@@ -1,11 +1,11 @@
-package edu.au.aufondue.screens.login
+package edu.au.unimend.aufondue.screens.login
 
 import android.annotation.SuppressLint
 import android.app.Application
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.AndroidViewModel
-import edu.au.aufondue.auth.AuthManager
+import edu.au.unimend.aufondue.auth.AuthManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

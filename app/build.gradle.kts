@@ -20,7 +20,7 @@ plugins {
 }
 
 android {
-    namespace = "edu.au.aufondue"
+    namespace = "edu.au.unimend.aufondue"
     compileSdk = 35
 
     lint {
@@ -49,7 +49,7 @@ android {
 
 
     defaultConfig {
-        applicationId = "edu.au.aufondue"
+        applicationId = "edu.au.unimend.aufondue"
         minSdk = 24
         targetSdk = 35
 //        versionCode = 1

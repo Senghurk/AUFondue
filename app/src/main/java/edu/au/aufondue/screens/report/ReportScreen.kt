@@ -1,4 +1,4 @@
-package edu.au.aufondue.screens.report
+package edu.au.unimend.aufondue.screens.report
 
 import android.Manifest
 import android.content.ContentValues
@@ -69,7 +69,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import edu.au.aufondue.R
+import edu.au.unimend.aufondue.R
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -245,19 +245,7 @@ fun ReportScreen(
                 minLines = 3
             )
 
-            // 4. Attach Media Button
-            Button(
-                onClick = { showAttachmentDialog = true },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            ) {
-                Text(stringResource(R.string.attach_media))
-            }
-
-            // Media preview (photos and videos)
+            // Media preview (photos and videos) - shown above Attach Media button
             if (state.selectedPhotos.isNotEmpty() || state.selectedVideos.isNotEmpty()) {
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -276,6 +264,18 @@ fun ReportScreen(
                         )
                     }
                 }
+            }
+
+            // 4. Attach Media Button
+            Button(
+                onClick = { showAttachmentDialog = true },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            ) {
+                Text(stringResource(R.string.attach_media))
             }
 
             // 5. Submit Button

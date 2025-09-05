@@ -1,9 +1,21 @@
-package edu.au.aufondue.screens.home
+package edu.au.unimend.aufondue.screens.home
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -15,9 +27,26 @@ import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Pending
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,11 +66,10 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.transformations
 import coil3.transform.CircleCropTransformation
-import edu.au.aufondue.R
-import edu.au.aufondue.auth.UserPreferences
-import edu.au.aufondue.navigation.Screen
-import java.util.*
-import androidx.compose.foundation.clickable
+import edu.au.unimend.aufondue.auth.UserPreferences
+import edu.au.unimend.aufondue.navigation.Screen
+import edu.au.unimend.aufondue.R
+import java.util.Calendar
 
 
 data class QuickStatCard(
@@ -70,8 +98,8 @@ fun HomeScreen(
     val username = displayName ?: userPreferences.getUsername() ?: stringResource(R.string.nav_profile)
     val userEmail = userPreferences.getUserEmail() ?: ""
     
-    // Use first name from display name for greeting, fallback to username
-    val greetingName = displayName?.split(" ")?.firstOrNull() ?: username
+    // Use full display name for greeting, fallback to username
+    val greetingName = displayName ?: username
 
     // Time-based greeting that considers user's timezone and internet time
     val greeting = remember {
@@ -107,7 +135,7 @@ fun HomeScreen(
     // Load profile picture using ProfilePictureService
     LaunchedEffect(Unit) {
         try {
-            val profilePictureService = edu.au.aufondue.api.ProfilePictureService.getInstance()
+            val profilePictureService = edu.au.unimend.aufondue.api.ProfilePictureService.getInstance()
             val profileUrl = profilePictureService.getProfilePictureUrl(context)
             
             avatarUrl = if (!profileUrl.isNullOrBlank()) {
@@ -338,26 +366,12 @@ private fun WelcomeSection(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = if (pendingReportsCount > 0) {
-                        stringResource(
-                            R.string.pending_reports,
-                            pendingReportsCount,
-                            if (pendingReportsCount == 1) "" else "s"
-                        )
-                    } else {
-                        stringResource(R.string.no_pending_reports)
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                )
             }
 
             // User Avatar
             val context = LocalContext.current
             val imageRequest = remember(avatarUrl, context) {
-                val profilePictureService = edu.au.aufondue.api.ProfilePictureService.getInstance()
+                val profilePictureService = edu.au.unimend.aufondue.api.ProfilePictureService.getInstance()
                 
                 if (avatarUrl.startsWith("graph_api:")) {
                     // Handle Microsoft Graph API URLs
@@ -399,12 +413,34 @@ private fun QuickStatsSection(stats: List<QuickStatCard>) {
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(horizontal = 4.dp)
+        // 2x2 Grid Layout
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(stats) { stat ->
-                QuickStatCard(stat = stat)
+            // First row: Total Reports and Pending
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    QuickStatCard(stat = stats[0]) // Total Reports
+                }
+                Box(modifier = Modifier.weight(1f)) {
+                    QuickStatCard(stat = stats[1]) // Pending
+                }
+            }
+            
+            // Second row: In Progress and Completed
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    QuickStatCard(stat = stats[2]) // In Progress
+                }
+                Box(modifier = Modifier.weight(1f)) {
+                    QuickStatCard(stat = stats[3]) // Completed
+                }
             }
         }
     }
@@ -414,7 +450,7 @@ private fun QuickStatsSection(stats: List<QuickStatCard>) {
 private fun QuickStatCard(stat: QuickStatCard) {
     Card(
         modifier = Modifier
-            .width(140.dp)
+            .fillMaxWidth()
             .height(100.dp)
             .clickable { stat.onClick() },
         shape = RoundedCornerShape(12.dp),

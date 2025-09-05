@@ -1,4 +1,4 @@
-package edu.au.aufondue.api.models
+package edu.au.unimend.aufondue.api.models
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
