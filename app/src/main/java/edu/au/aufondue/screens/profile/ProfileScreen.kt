@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,7 +13,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -64,19 +67,23 @@ fun ProfileScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
-        // Profile Avatar
-        Box(
+        Column(
             modifier = Modifier
-                .size(120.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Profile Avatar
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            ) {
             if (state.avatarUrl.isNotEmpty()) {
                 val imageRequest = remember(state.avatarUrl, context) {
                     val profilePictureService = edu.au.unimend.aufondue.api.ProfilePictureService.getInstance()
@@ -135,38 +142,42 @@ fun ProfileScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-        // Display Name
-        Text(
-            text = state.displayName,
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center
-        )
+            // Display Name
+            Text(
+                text = state.displayName,
+                style = MaterialTheme.typography.headlineSmall,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
 
-        // Email
-        Text(
-            text = state.email,
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center
-        )
+            // Email
+            Text(
+                text = state.email,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        // Update Avatar Button
-        Button(
-            onClick = { viewModel.updateAvatar() },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(stringResource(R.string.update_avatar))
-        }
+            // Update Avatar Button
+            Button(
+                onClick = { viewModel.updateAvatar() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+            ) {
+                Text(stringResource(R.string.update_avatar))
+            }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-        // Settings Card
-        Card(
-            modifier = Modifier.fillMaxWidth()
-        ) {
+            // Settings Card
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
@@ -212,12 +223,12 @@ fun ProfileScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        // App Info Card
-        Card(
-            modifier = Modifier.fillMaxWidth()
-        ) {
+            // App Info Card
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
@@ -260,17 +271,20 @@ fun ProfileScreen(
             }
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(32.dp))
 
-        // Sign Out Button
-        Button(
-            onClick = { viewModel.signOut(onSignOut) },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.error
-            )
-        ) {
-            Text(stringResource(R.string.sign_out))
+            // Sign Out Button
+            Button(
+                onClick = { viewModel.signOut(onSignOut) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text(stringResource(R.string.sign_out))
+            }
         }
     }
 
