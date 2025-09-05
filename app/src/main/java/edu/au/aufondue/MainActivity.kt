@@ -18,10 +18,12 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -64,22 +66,34 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             AUFondueTheme {
-                var isLoggedIn by remember { mutableStateOf(false) }
-                val navController = rememberNavController()
+                MainContent()
+            }
+        }
+    }
+    
+    @RequiresApi(Build.VERSION_CODES.O)
+    @Composable
+    private fun MainContent() {
+        val authManager = remember { AuthManager.getInstance(this@MainActivity) }
+        var isLoggedIn by rememberSaveable { 
+            val initial = authManager.isSignedIn()
+            Log.d(TAG, "Initial isLoggedIn state: $initial")
+            mutableStateOf(initial) 
+        }
+        val navController = rememberNavController()
+        
+        // Handle notification click only once at startup if initially logged in
+        var hasHandledNotification by rememberSaveable { mutableStateOf(false) }
+        LaunchedEffect(Unit) {
+            if (isLoggedIn && !hasHandledNotification) {
+                handleNotificationClick(intent)
+                hasHandledNotification = true
+            }
+        }
 
-                // Check authentication status
-                LaunchedEffect(Unit) {
-                    val authManager = AuthManager.getInstance(this@MainActivity)
-                    isLoggedIn = authManager.isSignedIn()
-                    if (isLoggedIn) {
-                        // Initialize FCM after checking login status
-                        initializeFCM()
-                        // Handle notification click if app was opened from notification
-                        handleNotificationClick(intent)
-                    }
-                }
-
-                if (isLoggedIn) {
+        Log.d(TAG, "Current isLoggedIn state: $isLoggedIn")
+        
+        if (isLoggedIn) {
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
                     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -171,12 +185,14 @@ class MainActivity : ComponentActivity() {
                                 composable(Screen.Profile.route) {
                                     ProfileScreen(
                                         onSignOut = {
-                                            // Remove FCM token before logout
-                                            removeFcmTokenFromServer()
-                                            // Sign out and update login state
-                                            val authManager = AuthManager.getInstance(this@MainActivity)
+                                            Log.d(TAG, "Sign out clicked")
+                                            
+                                            // Perform sign out first to clear Firebase auth
                                             authManager.signOut {
+                                                Log.d(TAG, "AuthManager sign out completed")
+                                                // Then update login state to trigger UI change
                                                 isLoggedIn = false
+                                                Log.d(TAG, "isLoggedIn set to false after sign out")
                                             }
                                         }
                                     )
@@ -212,13 +228,11 @@ class MainActivity : ComponentActivity() {
                     LoginScreen(
                         onLoginSuccess = {
                             isLoggedIn = true
-                            // Initialize FCM after successful login
-                            initializeFCM()
+                            // Initialize FCM after successful login (commenting out since FCM not used)
+                            // initializeFCM()
                         }
                     )
                 }
-            }
-        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -234,7 +248,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun initializeFCM() {
-        Log.d(TAG, "Initializing FCM...")
+        Log.d(TAG, "WARNING: initializeFCM called but should be disabled!")
 
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (!task.isSuccessful) {

@@ -159,4 +159,13 @@ object RetrofitClient {
 
     // Alias for better semantic naming
     fun fixMediaUrl(url: String): String = fixImageUrl(url)
+    
+    /**
+     * Clear any cached authentication tokens (used during sign out)
+     */
+    fun clearAuthToken() {
+        // Currently we don't cache auth tokens in RetrofitClient,
+        // but this method is here for future use if we implement token caching
+        Log.d(TAG, "Clearing any cached authentication tokens")
+    }
 }

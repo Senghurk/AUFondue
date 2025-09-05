@@ -40,7 +40,11 @@ class AuthManager private constructor(private val context: Context) {
     /**
      * Check if user is currently signed in
      */
-    fun isSignedIn(): Boolean = getCurrentUser() != null
+    fun isSignedIn(): Boolean {
+        val user = getCurrentUser()
+        Log.d(TAG, "isSignedIn check: user = ${user?.email}, returning ${user != null}")
+        return user != null
+    }
 
     /**
      * Sign in with Microsoft OAuth through Firebase (requires Activity context)
@@ -151,11 +155,31 @@ class AuthManager private constructor(private val context: Context) {
     fun signOut(onComplete: () -> Unit) {
         Log.d(TAG, "Signing out user")
 
-        // Sign out from Firebase
-        auth.signOut()
+        try {
+            // Sign out from Firebase first
+            auth.signOut()
+            Log.d(TAG, "Firebase sign out completed")
 
-        // Clear local user info
-        UserPreferences.getInstance(context).clearUserInfo()
-        onComplete()
+            // Clear all local user info and preferences
+            UserPreferences.getInstance(context).clearUserInfo()
+            Log.d(TAG, "Local user info cleared")
+            
+            // Clear any cached profile picture service data
+            try {
+                edu.au.unimend.aufondue.api.ProfilePictureService.getInstance().clearCache()
+            } catch (e: Exception) {
+                Log.w(TAG, "Error clearing profile picture cache", e)
+            }
+
+            // Clear any cached authentication tokens from RetrofitClient
+            RetrofitClient.clearAuthToken()
+            
+            Log.d(TAG, "Sign out completed successfully")
+            onComplete()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during sign out", e)
+            // Still call completion callback even if there's an error
+            onComplete()
+        }
     }
 }

@@ -198,4 +198,13 @@ class ProfilePictureService {
             null
         }
     }
+    
+    /**
+     * Clear any cached data (called during sign out)
+     */
+    fun clearCache() {
+        // Clear any cached URLs or data
+        // This is a placeholder for any future caching we might add
+        Log.d(TAG, "Clearing profile picture service cache")
+    }
 }

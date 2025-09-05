@@ -275,7 +275,11 @@ fun ProfileScreen(
 
             // Sign Out Button
             Button(
-                onClick = { viewModel.signOut(onSignOut) },
+                onClick = { 
+                    // Call the onSignOut callback directly
+                    // MainActivity will handle the actual sign out
+                    onSignOut()
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),

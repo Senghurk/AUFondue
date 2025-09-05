@@ -189,16 +189,21 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     fun signOut(onSignOutComplete: () -> Unit) {
         viewModelScope.launch {
             try {
+                // Perform sign out on IO thread
                 withContext(Dispatchers.IO) {
                     authManager?.signOut {
-                        // This callback runs after sign out completes
-                        onSignOutComplete()
+                        // Switch back to Main thread for UI updates
+                        viewModelScope.launch(Dispatchers.Main) {
+                            onSignOutComplete()
+                        }
                     }
                 }
             } catch (e: Exception) {
                 Log.e("ProfileViewModel", "Error signing out", e)
                 // Still call the completion callback even if there's an error
-                onSignOutComplete()
+                viewModelScope.launch(Dispatchers.Main) {
+                    onSignOutComplete()
+                }
             }
         }
     }
