@@ -225,18 +225,6 @@ fun HomeScreen(
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.app_name),
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                }
-            )
-        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onNavigateToReport,

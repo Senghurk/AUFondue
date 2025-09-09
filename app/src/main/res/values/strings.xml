@@ -56,7 +56,7 @@
     <string name="pending">Pending</string>
     <string name="in_progress">In Progress</string>
     <string name="completed">Completed</string>
-    <string name="your_submitted_reports">Recent Submitted Reports</string>
+    <string name="your_submitted_reports">Recent submitted reports</string>
     <string name="no_reports_yet">You haven\'t submitted any reports yet</string>
     <string name="submit_a_report">Submit a Report</string>
 
