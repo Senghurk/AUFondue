@@ -188,7 +188,7 @@ class ReportViewModel : ViewModel() {
     }
 
     private fun createIssueRequest(currentState: ReportState): IssueRequest {
-        val (userEmail, userName) = getUserInfo()
+        val (userEmail, _) = getUserInfo()
 
         return IssueRequest(
             description = currentState.description,
@@ -205,7 +205,7 @@ class ReportViewModel : ViewModel() {
             customLocation = currentState.customLocation,
             isUsingCustomLocation = true, // Always true since we're using custom location only
             userEmail = userEmail,
-            userName = userName
+            photoUrls = null // Photos are sent as multipart
         )
     }
 
@@ -268,7 +268,7 @@ class ReportViewModel : ViewModel() {
                 }
 
                 Log.d("ReportViewModel", "Submitting report with ${mediaParts.size} media files (${currentState.selectedPhotos.size} photos, ${currentState.selectedVideos.size} videos)")
-                Log.d("ReportViewModel", "User info - email=${issueRequest.userEmail}, name=${issueRequest.userName}")
+                Log.d("ReportViewModel", "User info - email=${issueRequest.userEmail}")
 
                 try {
                     val response = RetrofitClient.apiService.createIssue(issueRequestBody, mediaParts)

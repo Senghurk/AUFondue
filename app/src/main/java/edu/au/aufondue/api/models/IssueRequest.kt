@@ -13,5 +13,5 @@ data class IssueRequest(
     @Json(name = "isUsingCustomLocation")
     val isUsingCustomLocation: Boolean,
     val userEmail: String,
-    val userName: String
+    val photoUrls: List<String>? = null
 )
